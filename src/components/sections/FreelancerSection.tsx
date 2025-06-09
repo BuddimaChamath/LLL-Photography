@@ -96,9 +96,9 @@ export const FreelancerSection: React.FC = () => {
               Client Testimonials
             </h3>
             <div className="space-y-6">
-              <Testimonial quote="Tharun captured our wedding day perfectly. The photos exceeded our expectations and brought tears to our eyes." author="Ishara & Inuri" role="Wedding Clients" image="/assets/images/inuri and ishara/inuri&ishara-01.jpg" rating={5} />
-              <Testimonial quote="Working with Tharun on our company event was seamless. The photos perfectly captured our brand's essence." author="Lithmi & Jehaad" role="Wedding Clients" image="/assets/images/Lithmi and Jehaad/Lith&jay02.JPG" rating={5} />
-              <Testimonial quote="The portrait session with Tharun was comfortable and fun. The results were absolutely stunning." author="Mevina" role="Birthday Client" image="/assets/images/mevina birthday/mev-01.jpg" rating={5} />
+              <Testimonial quote="Tharun captured our wedding day perfectly. The photos exceeded our expectations and brought tears to our eyes." author="Ishara & Inuri" role="Wedding Clients" image="/assets/images/inuri&ishara-01.jpg" rating={5} />
+              <Testimonial quote="Working with Tharun on our company event was seamless. The photos perfectly captured our brand's essence." author="Lithmi & Jehaad" role="Wedding Clients" image="/assets/images/Lith&jay02.JPG" rating={5} />
+              <Testimonial quote="The portrait session with Tharun was comfortable and fun. The results were absolutely stunning." author="Mevina" role="Birthday Client" image="/assets/images/mev-01.jpg" rating={5} />
             </div>
           </div>
         </div>
