@@ -24,11 +24,11 @@ export const HeroSection: React.FC = () => {
         alt: 'Landscape photography 1',
       },
       {
-        src: "/assets/images/lan2.jpg",
+        src: "/assets/images/lan2.JPG",
         alt: 'Landscape photography 2'
       },
       {
-        src: "/assets/images/lan3.jpg",
+        src: "/assets/images/lan3.JPG",
         alt: 'Landscape photography 3'
       },
       {
@@ -46,11 +46,11 @@ export const HeroSection: React.FC = () => {
         alt: 'Landscape photography 2'
       },
       {
-        src: "/assets/images/port3.jpg",
+        src: "/assets/images/port3.JPG",
         alt: 'Landscape photography 3'
       },
       {
-        src: "/assets/images/port4.jpg",
+        src: "/assets/images/port4.JPG",
         alt: 'Landscape photography 4'
       }
     ]
