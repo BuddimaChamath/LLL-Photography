@@ -20,37 +20,37 @@ export const HeroSection: React.FC = () => {
   const slideCollections: SlideCollections = {
     landscape: [
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749474977/lan3_slhgze.jpg", 
+        src: "/assets/images/lan1.jpg", 
         alt: 'Landscape photography 1',
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749474976/lan4_yyzsbw.jpg",
+        src: "/assets/images/lan2.jpg",
         alt: 'Landscape photography 2'
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749474961/lan2_bqzzxj.jpg",
+        src: "/assets/images/lan3.jpg",
         alt: 'Landscape photography 3'
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749474951/lan1_y0wjgu.jpg",
+        src: "/assets/images/lan4.jpg",
         alt: 'Landscape photography 4'
       }
     ],
     portrait: [
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749475224/port4_znqnyt.jpg", 
+        src: "/assets/images/port1.jpg", 
         alt: 'Landscape photography 1',
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749474967/port3_lbpzjg.jpg",
+        src: "/assets/images/port2.jpg",
         alt: 'Landscape photography 2'
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749474955/port1_e896pe.jpg",
+        src: "/assets/images/port3.jpg",
         alt: 'Landscape photography 3'
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749474949/port2_rvzbnd.jpg",
+        src: "/assets/images/port4.jpg",
         alt: 'Landscape photography 4'
       }
     ]

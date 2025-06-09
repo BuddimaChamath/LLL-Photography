@@ -32,14 +32,38 @@ export const Header: React.FC = () => {
     <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white dark:bg-gray-900 shadow-md py-3' : 'bg-transparent py-5'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <a href="#" className="flex items-center">
+          <div className="flex justify-between items-center">
+          {/* Logo and Brand */}
+          <div className="flex items-center group">
+            <a href="#" className="flex items-center space-x-4 transition-transform duration-300 hover:scale-105">
+              {/* Original Logo */}
               <img 
                 src="/assets/logo.png" 
                 alt="LLL - Live Laugh Love" 
-                className={`transition-all duration-300 ${isScrolled ? 'h-10' : 'h-14'} w-auto object-contain`}
+                className={`transition-all duration-300 ${isScrolled ? 'h-10' : 'h-14'} w-auto object-contain drop-shadow-lg`}
               />
+              
+              {/* Brand Name */}
+              <div className="flex flex-col">
+                <span className={`font-black tracking-tight transition-all duration-300 ${
+                  isScrolled ? 'text-xl' : 'text-2xl'
+                } ${
+                  isScrolled 
+                    ? 'bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-300' 
+                    : 'bg-gradient-to-r from-white to-gray-200'
+                } bg-clip-text text-transparent drop-shadow-sm`}>
+                  THARUN GOUTHAM
+                </span>
+                <span className={`text-xs font-medium tracking-widest transition-all duration-300 ${
+                  isScrolled 
+                    ? 'text-amber-600 dark:text-amber-400' 
+                    : 'text-amber-300'
+                } opacity-90`}>
+                  PHOTOGRAPHY
+                </span>
+              </div>
             </a>
+          </div>
           </div>
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
