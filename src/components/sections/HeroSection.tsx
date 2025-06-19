@@ -1,23 +1,18 @@
-import React, { useEffect, useState } from 'react';
-// import { ChevronDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-interface SlideImage {
-
-  alt: string;
-  src: string,
+interface HeroSectionProps {
+  imagesPreloaded?: boolean; // Optional prop to indicate images are already preloaded
 }
 
-interface SlideCollections {
-  landscape: SlideImage[];
-  portrait: SlideImage[];
-}
+export const HeroSection: React.FC<HeroSectionProps> = ({ imagesPreloaded = false }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isLandscape, setIsLandscape] = useState(true);
+  const [imagesLoaded, setImagesLoaded] = useState(imagesPreloaded);
+  const [scrollY, setScrollY] = useState(0);
 
-export const HeroSection: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [isLandscape, setIsLandscape] = useState<boolean>(true);
-  
-  // Separate collections for different orientations
-  const slideCollections: SlideCollections = {
+  // Image collections for different orientations
+  const slideCollections = {
     landscape: [
       {
         src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493248/lan1_zamlol.jpg", 
@@ -39,19 +34,19 @@ export const HeroSection: React.FC = () => {
     portrait: [
       {
         src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493233/port1_j62u4z.jpg", 
-        alt: 'Landscape photography 1',
+        alt: 'Portrait photography 1',
       },
       {
         src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493239/port2_kwap94.jpg",
-        alt: 'Landscape photography 2'
+        alt: 'Portrait photography 2'
       },
       {
         src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493252/port3_gkcg0s.jpg",
-        alt: 'Landscape photography 3'
+        alt: 'Portrait photography 3'
       },
       {
         src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493255/port4_lcraob.jpg",
-        alt: 'Landscape photography 4'
+        alt: 'Portrait photography 4'
       }
     ]
   };
@@ -59,24 +54,64 @@ export const HeroSection: React.FC = () => {
   // Get current image collection based on screen orientation
   const currentCollection = isLandscape ? slideCollections.landscape : slideCollections.portrait;
 
+  // Enhanced scroll-triggered animation system with disappear effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial call
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Only preload images if they haven't been preloaded already
+  useEffect(() => {
+    if (imagesPreloaded) {
+      setImagesLoaded(true);
+      return;
+    }
+
+    const preloadImages = async () => {
+      const loadPromises = currentCollection.map((image) => {
+        return new Promise<void>((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error(`Failed to load ${image.src}`));
+          img.src = image.src;
+        });
+      });
+
+      try {
+        await Promise.all(loadPromises);
+        setImagesLoaded(true);
+      } catch (error) {
+        console.error('Error preloading images:', error);
+        setImagesLoaded(true); // Still show component even if some images fail
+      }
+    };
+
+    preloadImages();
+  }, [currentCollection, imagesPreloaded]);
+
   // Detect screen orientation and size
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
       
-      // Mobile portrait: width < 768px and height > width
-      // Tablet/Desktop landscape: width >= 768px or width > height
       setIsLandscape(width >= 768 || width > height);
+      setCurrentSlide(0); // Reset slide when orientation changes
       
-      // Reset slide when orientation changes
-      setCurrentSlide(0);
+      // Only reset image loading if images weren't preloaded
+      if (!imagesPreloaded) {
+        setImagesLoaded(false);
+      }
     };
 
-    // Initial check
     handleResize();
-    
-    // Listen for resize events
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
     
@@ -84,219 +119,219 @@ export const HeroSection: React.FC = () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
     };
-  }, []);
+  }, [imagesPreloaded]);
 
   // Auto-advance slideshow
   useEffect(() => {
+    if (!imagesLoaded) return;
+    
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % currentCollection.length);
     }, 5000); // Change slide every 5 seconds
 
     return () => clearInterval(interval);
-  }, [currentCollection.length]);
+  }, [currentCollection.length, imagesLoaded]);
 
+  // Content animation
   useEffect(() => {
-    // Completely disable hover effects on touch devices AND fix viewport issues
-    const styleId = 'mobile-touch-fix';
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = `
-        /* Reset all margins and padding */
-        * {
-          box-sizing: border-box;
-        }
-        
-        html, body {
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100% !important;
-          overflow-x: hidden !important;
-        }
-        
-        #root, .hero-container {
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100vw !important;
-          max-width: 100vw !important;
-        }
-        
-        /* Disable ALL hover effects on touch devices */
-        @media (hover: none) and (pointer: coarse) {
-          .hero-button:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-            transform: none !important;
-          }
-          
-          .scroll-indicator:hover {
-            opacity: 0.75 !important;
-          }
-        }
-        
-        /* Enable hover effects only on devices with hover capability */
-        @media (hover: hover) and (pointer: fine) {
-          .hero-button:hover {
-            box-shadow: 0 0 20px rgba(161, 161, 170, 0.4) !important;
-            transform: scale(1.05) !important;
-          }
-          
-          .scroll-indicator:hover {
-            opacity: 1 !important;
-          }
-        }
-        
-        /* Better background image handling */
-        .hero-bg {
-          background-position: center center;
-          background-repeat: no-repeat;
-          background-attachment: fixed;
-        }
-        
-        /* Slideshow animations */
-        .slide-image {
-          transition: opacity 1.5s ease-in-out;
-        }
-        
-        .slide-indicators {
-          transition: all 0.3s ease;
-        }
-        
-        @media (max-width: 768px) {
-          .hero-bg {
-            background-attachment: scroll;
-            background-size: cover !important;
-          }
-        }
-      `;
-      document.head.appendChild(style);
-    }
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 200);
+    return () => clearTimeout(timer);
   }, []);
 
-  const goToSlide = (index: number): void => {
+  const goToSlide = (index: number) => {
     setCurrentSlide(index);
   };
 
+  // Calculate enhanced scroll-based transformations for disappear effect
+  const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const scrollRatio = Math.min(scrollY / windowHeight, 1);
+  
+  const scrollTransform = {
+    // Content fades out more aggressively
+    opacity: Math.max(0, 1 - scrollRatio * 1.5),
+    // Scale down as user scrolls
+    scale: Math.max(0.7, 1 - scrollRatio * 0.4),
+    // Move content up and away
+    translateY: scrollRatio * 100,
+    // Add blur effect for depth
+    blur: scrollRatio * 15,
+    // Background moves slower (parallax effect)
+    backgroundTranslateY: scrollRatio * 50,
+    // Background scales differently
+    backgroundScale: Math.max(0.8, 1 - scrollRatio * 0.2),
+    // Add rotation for dynamic effect
+    rotate: scrollRatio * 5,
+    // Brightness adjustment
+    brightness: Math.max(0.3, 1 - scrollRatio * 0.7)
+  };
+
   return (
-    <section 
-      className="hero-container relative bg-black overflow-hidden" 
-      style={{ 
-        margin: 0, 
-        padding: 0, 
-        width: '100vw',
-        height: '100vh',
-        minWidth: '100vw',
-        maxWidth: '100vw',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-        position: 'relative'
-      }}
-    >
-      {/* Background Slideshow */}
-      <div 
-        className="absolute z-0 hero-bg" 
-        style={{ 
-          width: '100vw', 
-          height: '100vh', 
-          left: 0, 
-          right: 0, 
-          top: 0, 
-          bottom: 0,
-          margin: 0,
-          padding: 0,
-          inset: 0
-        }}
-      >
-        {currentCollection.map((image, index) => (
-          <div
-            key={`${isLandscape ? 'landscape' : 'portrait'}-${index}`}
-            className={`slide-image absolute w-full h-full bg-cover bg-center bg-no-repeat transition-opacity duration-1500 ${
-              index === currentSlide ? 'opacity-70' : 'opacity-0'
-            }`}
-            style={{
-              backgroundImage: `url(${image.src})`,
-              backgroundPosition: 'center center',
-              backgroundSize: 'cover',
-              width: '100vw',
-              height: '100vh'
-            }}
-            aria-label={image.alt}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" style={{ width: '100vw', height: '100vh' }}></div>
-      </div>
-
-      {/* Slide Indicators */}
-      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
-        {currentCollection.map((_, index) => (
-          <button
-            key={`indicator-${isLandscape ? 'landscape' : 'portrait'}-${index}`}
-            onClick={() => goToSlide(index)}
-            className={`slide-indicators w-3 h-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 ${
-              index === currentSlide 
-                ? 'bg-white shadow-lg' 
-                : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          />
-        ))}
-      </div>
-
-      {/* Content */}
-      <div 
-        className="absolute z-10 flex flex-col justify-center items-center text-center"
-        style={{
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '100%',
-          maxWidth: '1200px',
-          padding: '0 1rem'
-        }}
-      >
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tighter">
-          <span className="block">Capturing Moments</span>
-          <span className="block mt-2">Creating Memories</span>
-        </h1>
-        <p className="mt-4 sm:mt-6 max-w-sm sm:max-w-lg mx-auto text-lg sm:text-xl md:text-2xl text-gray-300 leading-relaxed">
-          Professional photography that tells your unique story
-        </p>
-        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md sm:max-w-none">
-          <a 
-            href="#contact" 
-            className="hero-button text-white backdrop-blur-lg bg-gradient-to-tr from-transparent via-[rgba(121,121,121,0.16)] to-transparent rounded-full py-3 px-6 shadow-lg transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
-            style={{ 
-              WebkitTapHighlightColor: 'transparent',
-              userSelect: 'none'
-            }}
-          >
-            Book a Shoot
-          </a>
-          <a 
-            href="#services" 
-            className="hero-button text-white backdrop-blur-lg bg-gradient-to-tr from-transparent via-[rgba(121,121,121,0.16)] to-transparent rounded-full py-3 px-6 shadow-lg transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
-            style={{ 
-              WebkitTapHighlightColor: 'transparent',
-              userSelect: 'none'
-            }}
-          >
-            View Price List
-          </a>
-        </div>
-      </div>
-      
-      {/* Scroll indicator */}
-      {/* <div className="absolute bottom-8 sm:bottom-10 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
-        <a 
-          href="#gallery" 
-          className="scroll-indicator text-white opacity-75 transition-opacity focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded-full p-2"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
+    <>
+      <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Slideshow with enhanced scroll effects */}
+        <div 
+          className="absolute inset-0 w-full h-full"
+          style={{
+            transform: `scale(${scrollTransform.backgroundScale}) translateY(${scrollTransform.backgroundTranslateY}px)`,
+            filter: `blur(${scrollTransform.blur}px) brightness(${scrollTransform.brightness})`,
+            transition: 'none'
+          }}
         >
-          <ChevronDown className="w-6 h-6 sm:w-8 sm:h-8" />
-        </a>
-      </div> */}
-    </section>
+          {currentCollection.map((image, index) => (
+            <div
+              key={`${isLandscape ? 'landscape' : 'portrait'}-${index}`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentSlide ? 'opacity-100' : 'opacity-0'
+              }`}
+              style={{
+                transform: 'translateZ(0)', // Hardware acceleration
+                willChange: 'opacity'
+              }}
+            >
+              <img
+                src={image.src}
+                alt={image.alt}
+                className="w-full h-full object-cover"
+                style={{
+                  imageRendering: 'auto',
+                  transform: 'translateZ(0)',
+                  backfaceVisibility: 'hidden', // Prevent flickering
+                  WebkitBackfaceVisibility: 'hidden'
+                }}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                draggable={false}
+              />
+            </div>
+          ))}
+          
+          {/* Enhanced overlay with scroll-based opacity */}
+          <div 
+            className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/40"
+            style={{
+              opacity: Math.max(0.5, 1 - scrollRatio * 0.3)
+            }}
+          />
+        </div>
+
+        {/* Slide Indicators with scroll effects */}
+        <div 
+          className="absolute bottom-16 sm:bottom-20 left-1/2 transform -translate-x-1/2 z-20 flex space-x-3"
+          style={{
+            opacity: scrollTransform.opacity,
+            transform: `translateX(-50%) translateY(${scrollTransform.translateY * 0.3}px) scale(${Math.max(0.5, 1 - scrollRatio * 0.5)})`
+          }}
+        >
+          {currentCollection.map((_, index) => (
+            <button
+              key={`indicator-${isLandscape ? 'landscape' : 'portrait'}-${index}`}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full border transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-white/50 hover:bg-white/70 hover:border-teal-500/50 hover:scale-110 ${
+                index === currentSlide 
+                  ? 'bg-teal-500 border-teal-500 shadow-lg shadow-teal-500/40 scale-110' 
+                  : 'bg-white/40 border-white/30'
+              }`}
+              aria-label={`Go to slide ${index + 1} of ${currentCollection.length}`}
+            />
+          ))}
+        </div>
+
+        {/* Content with enhanced scroll disappear effects */}
+        <div 
+          className={`relative z-10 text-center px-4 max-w-4xl mx-auto transition-all duration-1000 transform ${
+            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+          }`}
+          style={{
+            opacity: scrollTransform.opacity,
+            transform: `translateY(${isVisible ? scrollTransform.translateY : 40}px) scale(${scrollTransform.scale}) rotate(${scrollTransform.rotate}deg)`,
+            filter: `blur(${Math.min(scrollTransform.blur * 0.3, 3)}px)`
+          }}
+        >
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold mb-4 text-white drop-shadow-2xl">
+            Your Friendly
+            <br />
+            Photographer
+          </h1>
+          <p className="text-xl md:text-2xl font-light mb-8 text-gray-100 drop-shadow-lg max-w-2xl mx-auto">
+            Capturing Stories Through the Lens
+          </p>
+          
+          <div 
+            className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center items-center w-full max-w-sm sm:max-w-none mx-auto px-4"
+            style={{
+              opacity: Math.max(0, scrollTransform.opacity - 0.2),
+              transform: `scale(${Math.max(0.8, scrollTransform.scale)})`
+            }}
+          >
+            <a 
+              href="#contact" 
+              className="text-white rounded-full py-3 sm:py-4 px-6 sm:px-8 focus:outline-none focus:ring-2 focus:ring-white/50 inline-block text-center w-full sm:w-auto sm:min-w-[160px] no-underline uppercase text-xs sm:text-sm font-medium tracking-wider transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 border transform hover:scale-105"
+              style={{ 
+                WebkitTapHighlightColor: 'transparent',
+                userSelect: 'none',
+                fontFamily: 'Montserrat, system-ui, sans-serif',
+                background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(20, 184, 166, 0.2) 100%)',
+                borderColor: 'rgba(20, 184, 166, 0.4)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(20, 184, 166, 0.3) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(20, 184, 166, 0.3) 100%)';
+                e.currentTarget.style.borderColor = 'rgba(20, 184, 166, 0.6)';
+                e.currentTarget.style.boxShadow = '0 15px 35px rgba(20, 184, 166, 0.25)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(20, 184, 166, 0.2) 100%)';
+                e.currentTarget.style.borderColor = 'rgba(20, 184, 166, 0.4)';
+                e.currentTarget.style.boxShadow = '';
+              }}
+            >
+              Book a Shoot
+            </a>
+            
+            <a 
+              href="#services" 
+              className="text-white rounded-full py-3 sm:py-4 px-6 sm:px-8 focus:outline-none focus:ring-2 focus:ring-white/50 inline-block text-center w-full sm:w-auto sm:min-w-[160px] no-underline uppercase text-xs sm:text-sm font-medium tracking-wider transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 border transform hover:scale-105"
+              style={{ 
+                WebkitTapHighlightColor: 'transparent',
+                userSelect: 'none',
+                fontFamily: 'Montserrat, system-ui, sans-serif',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(20, 184, 166, 0.1) 50%, rgba(255, 255, 255, 0.1) 100%)',
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(20, 184, 166, 0.15) 50%, rgba(255, 255, 255, 0.15) 100%)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                e.currentTarget.style.boxShadow = '0 15px 35px rgba(255, 255, 255, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(20, 184, 166, 0.1) 50%, rgba(255, 255, 255, 0.1) 100%)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                e.currentTarget.style.boxShadow = '';
+              }}
+            >
+              View Services
+            </a>
+          </div>
+        </div>
+
+        {/* Loading indicator with scroll effects - only show if images aren't preloaded */}
+        {!imagesLoaded && !imagesPreloaded && (
+          <div 
+            className="absolute inset-0 bg-black/50 flex items-center justify-center z-30"
+            style={{
+              opacity: Math.max(0.5, 1 - scrollRatio * 0.5)
+            }}
+          >
+            <div className="text-white text-lg font-light">Loading...</div>
+          </div>
+        )}
+      </section>
+    </>
   );
 };
+
+export default HeroSection;
