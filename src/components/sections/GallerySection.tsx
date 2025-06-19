@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, X, Heart, Share2, ZoomIn, ZoomOut, Info, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Info } from 'lucide-react';
 import { altitudeCollection } from '../../collections/altitude-collection';
 import { piyumiShasithaWedCollection } from '../../collections/piyumiShasitha-collection';
 import { inuriIsharaWedCollection } from '../../collections/inuriIshara-collection';
@@ -29,32 +29,26 @@ const getOptimizedImageUrl = (url: string, options: {
     height,
     quality = 'auto',
     format = 'auto',
-    crop = 'limit', // Changed default from 'fill' to 'limit'
+    crop = 'limit',
     gravity = 'auto',
     preserveAspectRatio = true
   } = options;
 
-  // Check if it's a Cloudinary URL
   if (!url.includes('cloudinary.com')) return url;
   
-  // Extract base URL and image path
   const [baseUrl, imagePath] = url.split('/upload/');
   if (!baseUrl || !imagePath) return url;
   
-  // Build transformation string
   const transformations = [];
   
   if (width || height) {
     const dimensions = [];
     
     if (preserveAspectRatio) {
-      // Use 'limit' to scale down only if larger, preserving aspect ratio
-      // Use 'fit' to scale to fit within bounds, preserving aspect ratio
       if (width) dimensions.push(`w_${width}`);
       if (height) dimensions.push(`h_${height}`);
-      dimensions.push(`c_limit`); // This preserves aspect ratio and only scales down
+      dimensions.push(`c_limit`);
     } else {
-      // Original behavior for thumbnails where cropping might be desired
       if (width) dimensions.push(`w_${width}`);
       if (height) dimensions.push(`h_${height}`);
       dimensions.push(`c_${crop}`);
@@ -113,7 +107,7 @@ interface OptimizedImageProps {
   priority?: boolean;
   placeholder?: string;
   preserveAspectRatio?: boolean;
-  isModal?: boolean; // New prop to distinguish modal images
+  isModal?: boolean;
 }
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
@@ -134,7 +128,6 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   
   const shouldLoad = priority || isIntersecting;
   
-  // Generate optimized URLs
   const thumbnailUrl = useMemo(() => 
     getOptimizedImageUrl(src, { 
       width: width || 400, 
@@ -142,17 +135,17 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       quality: 70,
       format: 'auto',
       preserveAspectRatio: isModal || preserveAspectRatio,
-      crop: isModal ? 'limit' : 'fill' // Use 'limit' for modal, 'fill' for grid thumbnails
+      crop: isModal ? 'limit' : 'fill'
     }), [src, width, height, isModal, preserveAspectRatio]
   );
   
   const fullUrl = useMemo(() => 
     getOptimizedImageUrl(src, { 
-      width: width ? width * 2 : 1600, // Increased for better quality
+      width: width ? width * 2 : 1600,
       height: height ? height * 2 : 1200,
       quality: 'auto',
       format: 'auto',
-      preserveAspectRatio: true, // Always preserve for full-size images
+      preserveAspectRatio: true,
       crop: 'limit'
     }), [src, width, height]
   );
@@ -164,7 +157,6 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       try {
         await preloadImage(thumbnailUrl);
         setIsLoaded(true);
-        // Preload full resolution in background
         preloadImage(fullUrl).catch(() => {});
       } catch {
         setIsError(true);
@@ -176,7 +168,6 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   return (
     <div ref={targetRef} className={`relative overflow-hidden ${className}`}>
-      {/* Placeholder/Loading state */}
       {!isLoaded && !isError && (
         <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center justify-center">
           {placeholder ? (
@@ -191,14 +182,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         </div>
       )}
       
-      {/* Error state */}
       {isError && (
         <div className="absolute inset-0 bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
           <span className="text-gray-500 text-sm">Failed to load</span>
         </div>
       )}
       
-      {/* Actual image */}
       {isLoaded && (
         <img
           src={thumbnailUrl}
@@ -234,7 +223,7 @@ type GalleryItem = {
   images: Image[];
 };
 
-// Gallery Modal Component
+// Gallery Modal Component with Facebook-style scroll behavior
 interface GalleryModalProps {
   gallery: GalleryItem;
   onClose: () => void;
@@ -243,11 +232,13 @@ interface GalleryModalProps {
 const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(true);
-  const [isZoomed, setIsZoomed] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set());
   const [loadingImages, setLoadingImages] = useState<Set<number>>(new Set());
+  const [scrollY, setScrollY] = useState(0);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const infoPanelRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
-  // Preload current and adjacent images
   const preloadAdjacentImages = useCallback(async (index: number) => {
     const imagesToPreload = [
       index,
@@ -306,10 +297,6 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
         case 'I':
           setIsInfoPanelOpen(prev => !prev);
           break;
-        case 'z':
-        case 'Z':
-          setIsZoomed(prev => !prev);
-          break;
       }
     };
     
@@ -326,15 +313,22 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
     setCurrentImageIndex(prev => 
       prev === gallery.images.length - 1 ? 0 : prev + 1
     );
+    setScrollY(0); // Reset scroll when changing images
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
   }, [gallery.images.length]);
   
   const goToPrevious = useCallback(() => {
     setCurrentImageIndex(prev => 
       prev === 0 ? gallery.images.length - 1 : prev - 1
     );
+    setScrollY(0); // Reset scroll when changing images
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
   }, [gallery.images.length]);
   
-  // Touch swipe handling
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const minSwipeDistance = 50;
@@ -359,6 +353,18 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
     if (isRightSwipe) goToPrevious();
   };
 
+  // Handle scroll with Facebook-style behavior
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const scrollTop = target.scrollTop;
+    setScrollY(scrollTop);
+  }, []);
+
+  // Toggle info panel when clicking/tapping on image
+  const handleImageClick = useCallback(() => {
+    setIsInfoPanelOpen(prev => !prev);
+  }, []);
+
   const currentImageUrl = useMemo(() => 
     getOptimizedImageUrl(gallery.images[currentImageIndex].url, {
       width: 1600,
@@ -371,8 +377,8 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
   );
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm transition-all duration-300 animate-fade-in overflow-hidden">
-      {/* Top controls bar */}
+    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm transition-all duration-300 animate-fade-in overflow-hidden">
+      {/* Header */}
       <div className="absolute top-0 left-0 right-0 flex justify-between items-center px-4 py-3 bg-gradient-to-b from-black/70 to-transparent z-50">
         <h3 className="text-white font-medium truncate max-w-md">
           {gallery.title} <span className="text-gray-300 text-sm">({currentImageIndex + 1}/{gallery.images.length})</span>
@@ -385,13 +391,6 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
           >
             <Info size={20} />
           </button>
-          <button
-            onClick={() => setIsZoomed(prev => !prev)}
-            className="text-white hover:text-blue-400 transition-colors p-2 rounded-full hover:bg-white/10"
-            aria-label={isZoomed ? "Zoom out" : "Zoom in"}
-          >
-            {isZoomed ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
-          </button>
           <button 
             onClick={onClose} 
             className="text-white hover:text-red-400 transition-colors p-2 rounded-full hover:bg-white/10" 
@@ -402,7 +401,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
         </div>
       </div>
       
-      {/* Navigation arrows */}
+      {/* Navigation buttons */}
       <button 
         onClick={goToPrevious} 
         className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 md:p-3 z-20 transition-all hover:scale-110" 
@@ -418,109 +417,365 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
       >
         <ChevronRight size={24} />
       </button>
-      
-      {/* Main content */}
-      <div className="w-full h-full max-w-7xl flex flex-col md:flex-row overflow-hidden relative">
-        {/* Image container */}
-        <div 
-          className={`w-full ${isInfoPanelOpen ? 'md:w-3/4' : 'md:w-full'} h-[70vh] md:h-screen transition-all duration-300 relative flex items-center justify-center p-4`}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          {/* Loading indicator */}
-          {!preloadedImages.has(currentImageIndex) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-2"></div>
-                <span className="text-white text-sm">Loading...</span>
+
+      {/* Main content area */}
+      <div className="w-full h-full flex">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex w-full h-full">
+          {/* Fixed Image Section */}
+          <div 
+            className={`${isInfoPanelOpen ? 'w-3/4' : 'w-full'} h-full relative flex items-center justify-center p-4 transition-all duration-300`}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            {!preloadedImages.has(currentImageIndex) && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-2"></div>
+                  <span className="text-white text-sm">Loading...</span>
+                </div>
               </div>
+            )}
+            
+            <img 
+              src={currentImageUrl}
+              alt={gallery.images[currentImageIndex].alt} 
+              className={`max-w-full max-h-full object-contain transition-opacity duration-500 cursor-pointer ${
+                preloadedImages.has(currentImageIndex) ? 'opacity-100' : 'opacity-0'
+              }`}
+              onClick={handleImageClick}
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+              style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+              loading="eager"
+            />
+          </div>
+          
+          {/* Info Panel */}
+          <div 
+            className={`w-1/4 bg-white dark:bg-gray-900 overflow-y-auto flex-shrink-0 transition-all duration-300 border-l border-gray-200 dark:border-gray-700 ${
+              isInfoPanelOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+            } absolute right-0 top-0 bottom-0`}
+            onScroll={handleScroll}
+          >
+            <div className="p-6">
+              <h3 className="text-2xl font-serif mb-3 text-gray-900 dark:text-white">
+                {gallery.title}
+              </h3>
+              
+              <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">
+                {gallery.description}
+              </p>
+              
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center justify-between">
+                  Gallery Images
+                  <span className="text-blue-600 dark:text-blue-400">{currentImageIndex + 1}/{gallery.images.length}</span>
+                </h4>
+                <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
+                  {gallery.images.map((image, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => setCurrentImageIndex(idx)} 
+                      className={`aspect-square overflow-hidden rounded cursor-pointer transition-all duration-200 hover:opacity-90 ${
+                        idx === currentImageIndex ? 'ring-2 ring-blue-500 dark:ring-blue-400 scale-95' : 'hover:scale-95'
+                      }`}
+                    >
+                      <OptimizedImage
+                        src={image.url}
+                        alt={image.alt}
+                        className="w-full h-full"
+                        width={100}
+                        height={100}
+                        preserveAspectRatio={false}
+                        isModal={false}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+                  Image Details
+                </h4>
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                  <p><span className="font-medium">Category:</span> {gallery.category.join(', ')}</p>
+                  <p><span className="font-medium">Total Images:</span> {gallery.images.length}</p>
+                  <p><span className="font-medium">Current Image:</span> {gallery.images[currentImageIndex].alt}</p>
+                </div>
+              </div>
+              
+              <div className="h-32"></div>
             </div>
-          )}
-          
-          <img 
-            src={currentImageUrl}
-            alt={gallery.images[currentImageIndex].alt} 
-            className={`max-w-full max-h-full object-contain transition-all duration-500 ${
-              isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
-            } ${preloadedImages.has(currentImageIndex) ? 'opacity-100' : 'opacity-0'}`}
-            onClick={() => setIsZoomed(prev => !prev)}
-            onContextMenu={(e) => e.preventDefault()}
-            onDragStart={(e) => e.preventDefault()}
-            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-            loading="eager"
-          />
-          
-          {/* Image counter for mobile */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm rounded-full px-3 py-1 md:hidden">
-            {currentImageIndex + 1} / {gallery.images.length}
           </div>
         </div>
+
         
-        {/* Info panel */}
-        <div 
-          className={`w-full md:w-1/4 bg-white dark:bg-gray-900 overflow-y-auto flex-shrink-0 transition-all duration-300 border-l border-gray-200 dark:border-gray-700 h-[30vh] md:h-screen
-          ${isInfoPanelOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 absolute right-0 top-0 bottom-0'}`}
-        >
-          <div className="p-6">
-            <h3 className="text-2xl font-serif mb-3 text-gray-900 dark:text-white">
-              {gallery.title}
-            </h3>
-            
-            <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">
-              {gallery.description}
-            </p>
-            
-            {/* Image metadata */}
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Image Details</h4>
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-sm">
-                <p className="text-gray-600 dark:text-gray-300 mb-1">
-                  <span className="font-medium">Title:</span> {gallery.images[currentImageIndex].alt}
-                </p>
-                <p className="text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Categories:</span> {gallery.category.join(', ')}
-                </p>
-              </div>
-            </div>
-            
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-              <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center justify-between">
-                Gallery Images
-                <span className="text-blue-600 dark:text-blue-400">{currentImageIndex + 1}/{gallery.images.length}</span>
-              </h4>
-              <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
-                {gallery.images.map((image, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={() => setCurrentImageIndex(idx)} 
-                    className={`aspect-square overflow-hidden rounded cursor-pointer transition-all duration-200 hover:opacity-90 ${
-                      idx === currentImageIndex ? 'ring-2 ring-blue-500 dark:ring-blue-400 scale-95' : 'hover:scale-95'
-                    }`}
-                  >
-                    <OptimizedImage
-                      src={image.url}
-                      alt={image.alt}
-                      className="w-full h-full"
-                      width={100}
-                      height={100}
-                      preserveAspectRatio={false} // Keep cropping for thumbnails
-                      isModal={false}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
+
+<div className="md:hidden w-full h-full relative overflow-hidden">
+  {/* Main container with smooth scroll */}
+  <div 
+    ref={scrollContainerRef}
+    className="w-full h-full overflow-y-auto scroll-smooth"
+    style={{ 
+      scrollBehavior: 'smooth',
+      overscrollBehavior: 'contain',
+      height: '100vh',
+      minHeight: '100vh'
+    }}
+  >
+    {/* Fixed Image Container */}
+    <div 
+      className={`relative w-full bg-black transition-all duration-500 ease-out flex items-center justify-center ${
+        isInfoPanelOpen ? 'h-[60vh] min-h-[60vh]' : 'h-screen min-h-screen'
+      }`}
+    >
+      {/* Loading indicator */}
+      {!preloadedImages.has(currentImageIndex) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-2"></div>
+            <span className="text-white text-sm">Loading...</span>
           </div>
         </div>
+      )}
+      
+      {/* Main Image */}
+      <div 
+        className="w-full h-full flex items-center justify-center p-2 sm:p-4"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <img 
+          src={currentImageUrl}
+          alt={gallery.images[currentImageIndex].alt} 
+          className={`max-w-full max-h-full object-contain transition-all duration-500 cursor-pointer ${
+            preloadedImages.has(currentImageIndex) ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => {
+            setIsInfoPanelOpen(prev => !prev);
+            if (!isInfoPanelOpen) {
+              // Small delay to ensure state update, then scroll to show gallery
+              setTimeout(() => {
+                if (scrollContainerRef.current) {
+                  const viewportHeight = window.innerHeight;
+                  scrollContainerRef.current.scrollTo({
+                    top: viewportHeight * 0.6, // Scroll to show gallery
+                    behavior: 'smooth'
+                  });
+                }
+              }, 100);
+            } else {
+              // Scroll back to top when closing
+              setTimeout(() => {
+                if (scrollContainerRef.current) {
+                  scrollContainerRef.current.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                  });
+                }
+              }, 100);
+            }
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
+          style={{ 
+            userSelect: 'none', 
+            WebkitUserSelect: 'none',
+            maxWidth: '100%',
+            maxHeight: '100%',
+            width: 'auto',
+            height: 'auto'
+          }}
+          loading="eager"
+        />
       </div>
       
-      {/* Keyboard shortcuts help */}
+      {/* Image counter overlay - only show when gallery is closed */}
+      {!isInfoPanelOpen && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-sm rounded-full px-4 py-2 backdrop-blur-sm border border-white/20">
+          {currentImageIndex + 1} / {gallery.images.length}
+        </div>
+      )}
+      
+      {/* Tap to expand hint - only show when gallery is closed */}
+      {!isInfoPanelOpen && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
+          <div className="bg-black/50 text-white text-xs rounded-full px-4 py-2 backdrop-blur-sm animate-pulse border border-white/20">
+            Tap to view gallery
+          </div>
+        </div>
+      )}
+    </div>
+    
+    {/* Gallery Panel */}
+    <div 
+      className={`w-full bg-white dark:bg-gray-900 transition-all duration-500 ease-out ${
+        isInfoPanelOpen 
+          ? 'min-h-[60vh] opacity-100 translate-y-0' 
+          : 'h-0 opacity-0 -translate-y-full overflow-hidden'
+      }`}
+    >
+      {isInfoPanelOpen && (
+        <div className="p-4 sm:p-6">
+          {/* Collection Title */}
+          <div className="mb-4">
+            <h3 className="text-lg sm:text-xl font-serif text-gray-900 dark:text-white leading-tight">
+              {gallery.title}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              {gallery.description}
+            </p>
+          </div>
+          
+          {/* Current Image Info */}
+          <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                Image {currentImageIndex + 1} of {gallery.images.length}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    goToPrevious();
+                    // Keep gallery open and maintain scroll position
+                    setTimeout(() => {
+                      if (scrollContainerRef.current) {
+                        const viewportHeight = window.innerHeight;
+                        scrollContainerRef.current.scrollTo({
+                          top: viewportHeight * 0.6,
+                          behavior: 'smooth'
+                        });
+                      }
+                    }, 100);
+                  }}
+                  className="p-2 rounded-full bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 shadow-sm transition-colors"
+                  disabled={gallery.images.length <= 1}
+                >
+                  <ChevronLeft size={16} className="text-gray-600 dark:text-gray-300" />
+                </button>
+                <button
+                  onClick={() => {
+                    goToNext();
+                    // Keep gallery open and maintain scroll position
+                    setTimeout(() => {
+                      if (scrollContainerRef.current) {
+                        const viewportHeight = window.innerHeight;
+                        scrollContainerRef.current.scrollTo({
+                          top: viewportHeight * 0.6,
+                          behavior: 'smooth'
+                        });
+                      }
+                    }, 100);
+                  }}
+                  className="p-2 rounded-full bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 shadow-sm transition-colors"
+                  disabled={gallery.images.length <= 1}
+                >
+                  <ChevronRight size={16} className="text-gray-600 dark:text-gray-300" />
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* All Gallery Images - Scrollable Grid */}
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Collection Gallery ({gallery.images.length} photos)
+            </h4>
+            <div 
+              className="grid grid-cols-3 sm:grid-cols-4 gap-2 rounded-lg"
+              style={{
+                maxHeight: `${Math.ceil(gallery.images.length / 3) * 100}px`,
+                overflowY: 'auto'
+              }}
+            >
+              {gallery.images.map((image, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => {
+                    setCurrentImageIndex(idx);
+                    // Scroll to show the updated main image
+                    setTimeout(() => {
+                      if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTo({
+                          top: 0,
+                          behavior: 'smooth'
+                        });
+                      }
+                    }, 100);
+                    // Then scroll back to gallery after a moment
+                    setTimeout(() => {
+                      if (scrollContainerRef.current) {
+                        const viewportHeight = window.innerHeight;
+                        scrollContainerRef.current.scrollTo({
+                          top: viewportHeight * 0.6,
+                          behavior: 'smooth'
+                        });
+                      }
+                    }, 800);
+                  }} 
+                  className={`aspect-square overflow-hidden rounded cursor-pointer transition-all duration-200 ${
+                    idx === currentImageIndex 
+                      ? 'ring-2 ring-blue-500 dark:ring-blue-400 scale-95 shadow-lg' 
+                      : 'hover:scale-95 hover:opacity-80 shadow-sm'
+                  }`}
+                >
+                  <OptimizedImage
+                    src={image.url}
+                    alt={image.alt}
+                    className="w-full h-full"
+                    width={100}
+                    height={100}
+                    preserveAspectRatio={false}
+                    isModal={false}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Categories */}
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Categories:</span>
+              {gallery.category.map((cat, idx) => (
+                <span key={idx} className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md text-xs">
+                  {cat}
+                </span>
+              ))}
+            </div>
+          </div>
+          
+          {/* Scroll hint */}
+          <div className="mt-6 text-center">
+            <div className="inline-flex items-center text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-full">
+              <span>Tap main image to hide gallery</span>
+            </div>
+          </div>
+          
+          {/* Extra padding for better scrolling experience */}
+          <div className="h-8"></div>
+        </div>
+      )}
+    </div>
+    
+    {/* Limit scroll area based on panel state */}
+    {isInfoPanelOpen && (
+      <div className="w-full h-20 bg-transparent" />
+    )}
+  </div>
+</div>
+      </div>
+      
+      {/* Keyboard shortcuts (desktop only) */}
       <div className="absolute bottom-4 left-4 text-white text-xs opacity-60 hidden md:block">
         <div className="flex gap-3">
           <span>← → Navigate</span>
           <span>I Toggle Info</span>
-          <span>Z Zoom</span>
+          <span>Click image to toggle info</span>
           <span>ESC Close</span>
         </div>
       </div>
@@ -534,6 +789,7 @@ export const GallerySection: React.FC = () => {
   const [selectedGallery, setSelectedGallery] = useState<GalleryItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<number | null>(null);
+  const [animatedItems, setAnimatedItems] = useState<Set<string>>(new Set());
   
   useEffect(() => {
     if (selectedGallery) {
@@ -555,7 +811,6 @@ export const GallerySection: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
   
-  // Memoized gallery items
   const galleryItems: GalleryItem[] = useMemo(() => [
     {
       ...altitudeCollection,
@@ -617,6 +872,53 @@ export const GallerySection: React.FC = () => {
       : galleryItems.filter(item => item.category.includes(activeCategory)),
     [activeCategory, galleryItems]
   );
+
+  // Reset animations when category changes
+useEffect(() => {
+  setAnimatedItems(new Set());
+}, [activeCategory]);
+
+useEffect(() => {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.target.id) {
+        if (entry.isIntersecting) {
+          // Element is entering viewport - add to animated items
+          setAnimatedItems(prev => new Set([...prev, entry.target.id]));
+        } else {
+          // Element is leaving viewport - remove from animated items
+          setAnimatedItems(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(entry.target.id);
+            return newSet;
+          });
+        }
+      }
+    });
+  }, {
+    threshold: 0.1, // Trigger when 10% of element is visible
+    rootMargin: '50px 0px -50px 0px' // Add some margin for smoother transitions
+  });
+
+  const observeElements = () => {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    galleryItems.forEach(item => {
+      if (item.id) {
+        observer.observe(item);
+      }
+    });
+  };
+
+  // Clear all animations when category changes
+  setAnimatedItems(new Set());
+
+  const timeoutId = setTimeout(observeElements, 300);
+
+  return () => {
+    clearTimeout(timeoutId);
+    observer.disconnect();
+  };
+}, [filteredItems, activeCategory]);
   
   return (
     <section id="gallery" className="py-24 bg-white dark:bg-gray-900">
@@ -670,53 +972,68 @@ export const GallerySection: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredItems.map((item, index) => (
-              <div 
-                key={item.id} 
-                className="group relative overflow-hidden rounded-lg shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-xl cursor-pointer bg-white dark:bg-gray-800"
-                onClick={() => setSelectedGallery(item)}
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
-                <div className="relative aspect-square overflow-hidden">
-                  <OptimizedImage
-                    src={item.src}
-                    alt={item.alt}
-                    className={`w-full h-full transition-all duration-700 ${
-                      hoveredItem === item.id ? 'scale-110 brightness-90' : 'scale-100'
-                    }`}
-                    onClick={() => setSelectedGallery(item)}
-                    width={400}
-                    height={400}
-                    priority={index < 8} // Prioritize first 8 images
-                    preserveAspectRatio={false} // Keep cropping for grid thumbnails
-                    isModal={false}
-                  />
-                  
-                  <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
-                    hoveredItem === item.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-90'
-                  }`}>
-                    <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <h3 className="text-white font-semibold text-lg mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-gray-200 text-sm mb-2 ">
-                        {item.description}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-300 bg-black/30 px-2 py-1 rounded-full">
-                          {item.images.length} photos
-                        </span><span className="text-xs text-gray-300 bg-black/15 px-2 py-1 rounded-full">
-                      {item.category[0]}
-                    </span>
+            {filteredItems.map((item, index) => {
+              const isAnimated = animatedItems.has(`gallery-${item.id}`);
+              
+              
+              return (
+  <div 
+    key={item.id}
+    id={`gallery-${item.id}`}
+    className={`gallery-item group relative overflow-hidden rounded-lg shadow-lg transition-all duration-700 transform hover:-translate-y-2 hover:shadow-xl cursor-pointer bg-white dark:bg-gray-800 ${
+      isAnimated
+        ? 'opacity-100 translate-y-0' 
+        : 'opacity-0 translate-y-10'
+    }`}
+    style={{
+      transitionDelay: `${index * 100}ms`
+    }}
+                  onClick={() => setSelectedGallery(item)}
+                  onMouseEnter={() => setHoveredItem(item.id)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <div className="relative aspect-square overflow-hidden">
+                    <OptimizedImage
+                      src={item.src}
+                      alt={item.alt}
+                      className={`w-full h-full transition-all duration-700 ${
+                        hoveredItem === item.id ? 'scale-110 brightness-90' : 'scale-100'
+                      }`}
+                      onClick={() => setSelectedGallery(item)}
+                      width={400}
+                      height={400}
+                      priority={index < 8}
+                      preserveAspectRatio={false}
+                      isModal={false}
+                    />
+                    
+                    <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
+                      hoveredItem === item.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-90'
+                    }`}>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                        <h3 className="text-white font-semibold text-lg mb-1">
+                          {item.title}
+                        </h3>
+                        <p className="text-gray-200 text-sm mb-2">
+                          {item.description}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-300 bg-black/30 px-2 py-1 rounded-full">
+                            {item.images.length} photos
+                          </span>
+                          <span className="text-xs text-gray-300 bg-black/15 px-2 py-1 rounded-full">
+                            {item.category[0]}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
+        
       </div>
       
       {/* Modal */}
