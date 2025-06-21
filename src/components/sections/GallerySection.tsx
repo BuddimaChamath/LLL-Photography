@@ -403,20 +403,21 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
       
       {/* Navigation buttons */}
       <button 
-        onClick={goToPrevious} 
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 md:p-3 z-20 transition-all hover:scale-110" 
-        aria-label="Previous image"
-      >
-        <ChevronLeft size={24} />
-      </button>
-      
-      <button 
-        onClick={goToNext} 
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 md:p-3 z-20 transition-all hover:scale-110" 
-        aria-label="Next image"
-      >
-        <ChevronRight size={24} />
-      </button>
+  onClick={goToPrevious} 
+  className="hidden md:block absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 md:p-3 z-20 transition-all hover:scale-110" 
+  aria-label="Previous image"
+>
+  <ChevronLeft size={24} />
+</button>
+
+<button 
+  onClick={goToNext} 
+  className="hidden md:block absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 md:p-3 z-20 transition-all hover:scale-110" 
+  aria-label="Next image"
+>
+  <ChevronRight size={24} />
+</button>
+    
 
       {/* Main content area */}
       <div className="w-full h-full flex">
@@ -515,22 +516,28 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
         
 
 <div className="md:hidden w-full h-full relative overflow-hidden">
-  {/* Main container with smooth scroll */}
+  {/* Main container with optimized smooth scroll */}
   <div 
     ref={scrollContainerRef}
-    className="w-full h-full overflow-y-auto scroll-smooth"
+    className="w-full h-full overflow-y-auto"
     style={{ 
       scrollBehavior: 'smooth',
       overscrollBehavior: 'contain',
       height: '100vh',
-      minHeight: '100vh'
+      minHeight: '100vh',
+      WebkitOverflowScrolling: 'touch', // Better iOS scrolling
+      willChange: 'scroll-position' // Optimize for scroll animations
     }}
   >
-    {/* Fixed Image Container */}
+    {/* Fixed Image Container - Optimized for mobile */}
     <div 
-      className={`relative w-full bg-black transition-all duration-500 ease-out flex items-center justify-center ${
+      className={`relative w-full bg-black flex items-center justify-center transition-all duration-300 ease-out ${
         isInfoPanelOpen ? 'h-[60vh] min-h-[60vh]' : 'h-screen min-h-screen'
       }`}
+      style={{
+        transform: 'translateZ(0)', // Force hardware acceleration
+        backfaceVisibility: 'hidden' // Reduce flickering
+      }}
     >
       {/* Loading indicator */}
       {!preloadedImages.has(currentImageIndex) && (
@@ -542,42 +549,45 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
         </div>
       )}
       
-      {/* Main Image */}
+      {/* Main Image - Optimized for mobile performance */}
       <div 
         className="w-full h-full flex items-center justify-center p-2 sm:p-4"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
+        style={{
+          transform: 'translateZ(0)', // Hardware acceleration
+          WebkitTransform: 'translateZ(0)'
+        }}
       >
         <img 
           src={currentImageUrl}
           alt={gallery.images[currentImageIndex].alt} 
-          className={`max-w-full max-h-full object-contain transition-all duration-500 cursor-pointer ${
+          className={`max-w-full max-h-full object-contain cursor-pointer transition-opacity duration-300 ${
             preloadedImages.has(currentImageIndex) ? 'opacity-100' : 'opacity-0'
           }`}
           onClick={() => {
             setIsInfoPanelOpen(prev => !prev);
             if (!isInfoPanelOpen) {
-              // Small delay to ensure state update, then scroll to show gallery
-              setTimeout(() => {
+              // Optimized scroll with requestAnimationFrame
+              requestAnimationFrame(() => {
                 if (scrollContainerRef.current) {
                   const viewportHeight = window.innerHeight;
                   scrollContainerRef.current.scrollTo({
-                    top: viewportHeight * 0.6, // Scroll to show gallery
+                    top: viewportHeight * 0.6,
                     behavior: 'smooth'
                   });
                 }
-              }, 100);
+              });
             } else {
-              // Scroll back to top when closing
-              setTimeout(() => {
+              requestAnimationFrame(() => {
                 if (scrollContainerRef.current) {
                   scrollContainerRef.current.scrollTo({
                     top: 0,
                     behavior: 'smooth'
                   });
                 }
-              }, 100);
+              });
             }
           }}
           onContextMenu={(e) => e.preventDefault()}
@@ -588,36 +598,40 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
             maxWidth: '100%',
             maxHeight: '100%',
             width: 'auto',
-            height: 'auto'
+            height: 'auto',
+            transform: 'translateZ(0)', // Hardware acceleration
+            WebkitTransform: 'translateZ(0)'
           }}
           loading="eager"
         />
       </div>
       
-      {/* Image counter overlay - only show when gallery is closed */}
+      {/* Image counter overlay - optimized positioning */}
       {!isInfoPanelOpen && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-sm rounded-full px-4 py-2 backdrop-blur-sm border border-white/20">
+        <div 
+          className="absolute bottom-4 left-1/2 bg-black/70 text-white text-sm rounded-full px-4 py-2 backdrop-blur-sm border border-white/20"
+          style={{
+            transform: 'translateX(-50%) translateZ(0)',
+            WebkitTransform: 'translateX(-50%) translateZ(0)'
+          }}
+        >
           {currentImageIndex + 1} / {gallery.images.length}
-        </div>
-      )}
-      
-      {/* Tap to expand hint - only show when gallery is closed */}
-      {!isInfoPanelOpen && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
-          <div className="bg-black/50 text-white text-xs rounded-full px-4 py-2 backdrop-blur-sm animate-pulse border border-white/20">
-            Tap to view gallery
-          </div>
         </div>
       )}
     </div>
     
-    {/* Gallery Panel */}
+    {/* Gallery Panel - Optimized transitions */}
     <div 
-      className={`w-full bg-white dark:bg-gray-900 transition-all duration-500 ease-out ${
+      className={`w-full bg-white dark:bg-gray-900 transition-all duration-300 ease-out ${
         isInfoPanelOpen 
-          ? 'min-h-[60vh] opacity-100 translate-y-0' 
-          : 'h-0 opacity-0 -translate-y-full overflow-hidden'
+          ? 'min-h-[60vh] opacity-100' 
+          : 'h-0 opacity-0 overflow-hidden'
       }`}
+      style={{
+        transform: 'translateZ(0)', // Hardware acceleration
+        WebkitTransform: 'translateZ(0)',
+        willChange: isInfoPanelOpen ? 'height, opacity' : 'auto'
+      }}
     >
       {isInfoPanelOpen && (
         <div className="p-4 sm:p-6">
@@ -631,65 +645,21 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
             </p>
           </div>
           
-          {/* Current Image Info */}
-          <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                Image {currentImageIndex + 1} of {gallery.images.length}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    goToPrevious();
-                    // Keep gallery open and maintain scroll position
-                    setTimeout(() => {
-                      if (scrollContainerRef.current) {
-                        const viewportHeight = window.innerHeight;
-                        scrollContainerRef.current.scrollTo({
-                          top: viewportHeight * 0.6,
-                          behavior: 'smooth'
-                        });
-                      }
-                    }, 100);
-                  }}
-                  className="p-2 rounded-full bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 shadow-sm transition-colors"
-                  disabled={gallery.images.length <= 1}
-                >
-                  <ChevronLeft size={16} className="text-gray-600 dark:text-gray-300" />
-                </button>
-                <button
-                  onClick={() => {
-                    goToNext();
-                    // Keep gallery open and maintain scroll position
-                    setTimeout(() => {
-                      if (scrollContainerRef.current) {
-                        const viewportHeight = window.innerHeight;
-                        scrollContainerRef.current.scrollTo({
-                          top: viewportHeight * 0.6,
-                          behavior: 'smooth'
-                        });
-                      }
-                    }, 100);
-                  }}
-                  className="p-2 rounded-full bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 shadow-sm transition-colors"
-                  disabled={gallery.images.length <= 1}
-                >
-                  <ChevronRight size={16} className="text-gray-600 dark:text-gray-300" />
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          {/* All Gallery Images - Scrollable Grid */}
+          {/* All Gallery Images - iOS Safari Compatible Grid */}
           <div className="mb-4">
             <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               Collection Gallery ({gallery.images.length} photos)
             </h4>
             <div 
-              className="grid grid-cols-3 sm:grid-cols-4 gap-2 rounded-lg"
+              className="rounded-lg"
               style={{
-                maxHeight: `${Math.ceil(gallery.images.length / 3) * 100}px`,
-                overflowY: 'auto'
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.5rem', // 8px gap
+                maxHeight: `${Math.min(Math.ceil(gallery.images.length / 3) * 120, 480)}px`,
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                minHeight: '0'
               }}
             >
               {gallery.images.map((image, idx) => (
@@ -697,31 +667,48 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
                   key={idx} 
                   onClick={() => {
                     setCurrentImageIndex(idx);
-                    // Scroll to show the updated main image
-                    setTimeout(() => {
+                    // Optimized scroll behavior
+                    requestAnimationFrame(() => {
                       if (scrollContainerRef.current) {
                         scrollContainerRef.current.scrollTo({
                           top: 0,
                           behavior: 'smooth'
                         });
                       }
-                    }, 100);
-                    // Then scroll back to gallery after a moment
+                    });
+                    // Delayed second scroll
                     setTimeout(() => {
-                      if (scrollContainerRef.current) {
-                        const viewportHeight = window.innerHeight;
-                        scrollContainerRef.current.scrollTo({
-                          top: viewportHeight * 0.6,
-                          behavior: 'smooth'
-                        });
-                      }
-                    }, 800);
+                      requestAnimationFrame(() => {
+                        if (scrollContainerRef.current) {
+                          const viewportHeight = window.innerHeight;
+                          scrollContainerRef.current.scrollTo({
+                            top: viewportHeight * 0.6,
+                            behavior: 'smooth'
+                          });
+                        }
+                      });
+                    }, 600); // Reduced delay for snappier feel
                   }} 
-                  className={`aspect-square overflow-hidden rounded cursor-pointer transition-all duration-200 ${
+                  className={`overflow-hidden rounded cursor-pointer transition-all duration-200 ${
                     idx === currentImageIndex 
                       ? 'ring-2 ring-blue-500 dark:ring-blue-400 scale-95 shadow-lg' 
                       : 'hover:scale-95 hover:opacity-80 shadow-sm'
                   }`}
+                  style={{
+                    // Fixed sizing for 3 columns with gap
+                    width: 'calc(33.333% - 0.334rem)', // Adjusted for 0.5rem gap
+                    aspectRatio: '1 / 1',
+                    flexShrink: 0,
+                    // Hardware acceleration
+                    transform: 'translateZ(0)',
+                    WebkitTransform: 'translateZ(0)',
+                    // iOS specific fixes
+                    WebkitBackfaceVisibility: 'hidden',
+                    backfaceVisibility: 'hidden',
+                    position: 'relative',
+                    minWidth: '0',
+                    minHeight: '0'
+                  }}
                 >
                   <OptimizedImage
                     src={image.url}
@@ -752,7 +739,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
           {/* Scroll hint */}
           <div className="mt-6 text-center">
             <div className="inline-flex items-center text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-full">
-              <span>Tap main image to hide gallery</span>
+              <span>Tap main image to hide gallery • Swipe to navigate</span>
             </div>
           </div>
           
@@ -925,8 +912,8 @@ useEffect(() => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white relative inline-block">
-            Portfolio Gallery
-            <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-600 rounded-full"></span>
+            Gallery
+            <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-teal-600 rounded-full"></span>
           </h2>
           <p className="mt-6 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Browse through a collection of my best work across different photography styles

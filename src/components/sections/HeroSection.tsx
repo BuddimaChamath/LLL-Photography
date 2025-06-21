@@ -318,17 +318,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ imagesPreloaded = fals
           </div>
         </div>
 
-        {/* Loading indicator with scroll effects - only show if images aren't preloaded */}
-        {!imagesLoaded && !imagesPreloaded && (
-          <div 
-            className="absolute inset-0 bg-black/50 flex items-center justify-center z-30"
-            style={{
-              opacity: Math.max(0.5, 1 - scrollRatio * 0.5)
-            }}
-          >
-            <div className="text-white text-lg font-light">Loading...</div>
-          </div>
-        )}
+        
       </section>
     </>
   );
