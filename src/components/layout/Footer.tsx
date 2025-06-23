@@ -94,7 +94,7 @@ export const Footer: React.FC = () => {
                 Quick Links
               </h3>
               <ul className="space-y-3">
-                {['Gallery', 'About', 'Services', 'Freelance', 'Contact'].map((item) => (
+                {['Gallery', 'About', 'Services', 'Testimonials', 'Contact'].map((item) => (
                   <li key={item}>
                     <a 
                       href={`#${item.toLowerCase()}`} 

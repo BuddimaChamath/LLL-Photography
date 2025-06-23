@@ -136,22 +136,22 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
 
   // Enhanced Camera Icon component for TypeScript
   const EnhancedCameraIcon: React.FC = () => (
-    <div className="mb-16 relative">
+    <div className="mb-12 sm:mb-16 relative">
       
       {/* Main camera container */}
-      <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
+      <div className="relative mx-auto w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
         
         {/* Camera body with enhanced gradients */}
-        <div className="w-20 h-14 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 rounded-xl relative shadow-2xl border border-slate-600/50">
+        <div className="w-16 h-12 sm:w-20 sm:h-14 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 rounded-xl relative shadow-2xl border border-slate-600/50">
           
           {/* Top accent line */}
           <div className="absolute top-1 left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-slate-500 to-transparent rounded-full" />
           
           {/* Main lens assembly */}
-          <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 w-14 h-14">
+          <div className="absolute -top-4 sm:-top-5 left-1/2 transform -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14">
             
             {/* Outer lens ring with metallic effect */}
-            <div className="w-14 h-14 bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 rounded-full border-2 border-slate-500 shadow-xl relative">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 rounded-full border-2 border-slate-500 shadow-xl relative">
               
               {/* Inner lens ring */}
               <div className="absolute inset-1 bg-gradient-to-br from-slate-800 via-slate-900 to-black rounded-full border border-slate-600">
@@ -186,9 +186,9 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
                   </div>
                   
                   {/* Multi-layered lens reflections */}
-                  <div className="absolute top-1 left-1 w-3 h-3 bg-white/40 rounded-full blur-sm" />
-                  <div className="absolute top-2 left-3 w-1.5 h-1.5 bg-blue-200/60 rounded-full blur-sm" />
-                  <div className="absolute bottom-2 right-1 w-2 h-2 bg-purple-200/30 rounded-full blur-sm" />
+                  <div className="absolute top-1 left-1 w-2 h-2 sm:w-3 sm:h-3 bg-white/40 rounded-full blur-sm" />
+                  <div className="absolute top-1.5 left-2 sm:top-2 sm:left-3 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-blue-200/60 rounded-full blur-sm" />
+                  <div className="absolute bottom-1.5 right-1 sm:bottom-2 sm:right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-purple-200/30 rounded-full blur-sm" />
                   
                   {/* Center focus point */}
                   <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${
@@ -205,7 +205,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
           </div>
 
           {/* Enhanced viewfinder */}
-          <div className="absolute -top-3 right-2 w-4 h-3 bg-gradient-to-b from-slate-600 to-slate-700 rounded border border-slate-500 shadow-lg">
+          <div className="absolute -top-2.5 sm:-top-3 right-1.5 sm:right-2 w-3 h-2.5 sm:w-4 sm:h-3 bg-gradient-to-b from-slate-600 to-slate-700 rounded border border-slate-500 shadow-lg">
             <div className="absolute inset-0.5 bg-slate-800 rounded-sm">
               <div className={`absolute inset-0 transition-all duration-300 ${
                 currentStage === 'loading' ? 'bg-green-400/20' : 'bg-transparent'
@@ -214,8 +214,8 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
           </div>
           
           {/* Enhanced flash with charging indicator */}
-          <div className="absolute -top-3 left-2 relative">
-            <div className={`w-3 h-2 rounded transition-all duration-500 ${
+          <div className="absolute -top-2.5 sm:-top-3 left-1.5 sm:left-2 relative">
+            <div className={`w-2.5 h-1.5 sm:w-3 sm:h-2 rounded transition-all duration-500 ${
               currentStage === 'loading' 
                 ? 'bg-gradient-to-r from-amber-300 to-yellow-400 shadow-lg shadow-amber-400/50' 
                 : 'bg-gradient-to-r from-slate-600 to-slate-700'
@@ -227,19 +227,19 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
           
           {/* Camera grip texture */}
           <div className="absolute right-1 top-2 bottom-2 w-1">
-            {[...Array(8)].map((_, i) => (
+            {[...Array(6)].map((_, i) => (
               <div key={i} className="h-0.5 bg-slate-600 mb-0.5 rounded-full" />
             ))}
           </div>
           
           {/* Brand logo area */}
           <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center space-x-1">
-            <div className="w-6 h-0.5 bg-gradient-to-r from-slate-500 to-slate-600 rounded-full" />
+            <div className="w-4 sm:w-6 h-0.5 bg-gradient-to-r from-slate-500 to-slate-600 rounded-full" />
             <div className="w-1 h-1 bg-slate-500 rounded-full" />
           </div>
           
           {/* Mode dial */}
-          <div className="absolute -top-1 left-1 w-3 h-3 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full border border-slate-500 shadow-md">
+          <div className="absolute -top-1 left-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full border border-slate-500 shadow-md">
             <div className={`absolute inset-0.5 rounded-full transition-all duration-1000 ${
               currentStage === 'loading' ? 'bg-emerald-500' : 'bg-slate-700'
             }`} />
@@ -250,13 +250,13 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
         {currentStage === 'loading' && (
           <>
             {/* Primary focus ring */}
-            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 w-14 h-14 pointer-events-none">
+            <div className="absolute -top-4 sm:-top-5 left-1/2 transform -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 pointer-events-none">
               <div className="absolute inset-0 border-2 border-emerald-400 rounded-full animate-ping opacity-40" />
               <div className="absolute inset-1 border border-emerald-300 rounded-full animate-pulse opacity-60" />
             </div>
             
             {/* Secondary glow effect */}
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-16 h-16 pointer-events-none">
+            <div className="absolute -top-5 sm:-top-6 left-1/2 transform -translate-x-1/2 w-14 h-14 sm:w-16 sm:h-16 pointer-events-none">
               <div className="absolute inset-0 bg-emerald-400/10 rounded-full animate-pulse" />
             </div>
           </>
@@ -359,7 +359,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center overflow-hidden px-4 sm:px-6">
       
       {/* Animated Background Particles */}
       <div className="absolute inset-0 pointer-events-none">
@@ -379,13 +379,13 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
 
       {/* Completion State */}
       {isComplete ? (
-        <div className="text-center relative z-10 animate-fade-in">
-          <div className="mb-12 transform transition-all duration-1000">
+        <div className="text-center relative z-10 animate-fade-in max-w-sm mx-auto">
+          <div className="mb-8 sm:mb-12 transform transition-all duration-1000">
             <div className="relative">
               <img 
                 src="/assets/logo.png" 
                 alt="Logo" 
-                className="mx-auto h-20 w-auto object-contain transition-all duration-500 hover:scale-105"
+                className="mx-auto h-16 sm:h-20 w-auto object-contain transition-all duration-500 hover:scale-105"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
@@ -398,8 +398,8 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
           {/* Enhanced Camera Icon for completion state */}
           <EnhancedCameraIcon />
           
-          <div className="space-y-6">
-            <h2 className="text-2xl font-light text-slate-800 tracking-wide">
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-light text-slate-800 tracking-wide">
               Ready to Capture
             </h2>
             <p className="text-sm text-slate-500">
@@ -409,14 +409,14 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
         </div>
       ) : (
         /* Loading State */
-        <div className="text-center relative z-10">
+        <div className="text-center relative z-10 max-w-sm mx-auto">
           {/* Logo with subtle animation */}
-          <div className="mb-12 transform transition-all duration-1000">
+          <div className="mb-8 sm:mb-12 transform transition-all duration-1000">
             <div className="relative">
               <img 
                 src="/assets/logo.png" 
                 alt="Logo" 
-                className="mx-auto h-20 w-auto object-contain transition-all duration-500 hover:scale-105"
+                className="mx-auto h-16 sm:h-20 w-auto object-contain transition-all duration-500 hover:scale-105"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
@@ -430,11 +430,11 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
           <EnhancedCameraIcon />
 
           {/* Loading Text with Smooth Transitions */}
-          <div className="mb-12 space-y-3 h-20 flex flex-col justify-center">
+          <div className="mb-8 sm:mb-12 space-y-2 sm:space-y-3 h-16 sm:h-20 flex flex-col justify-center">
             <div className={`transition-all duration-500 transform ${
               isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
             }`}>
-              <h1 className="text-3xl font-light text-slate-800 tracking-wide">
+              <h1 className="text-2xl sm:text-3xl font-light text-slate-800 tracking-wide">
                 {getStageText()}
               </h1>
             </div>
@@ -443,15 +443,15 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
               isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
             }`}>
               {getSubText() && (
-                <p className="text-sm text-slate-500 min-h-[20px]">
+                <p className="text-xs sm:text-sm text-slate-500 min-h-[16px] sm:min-h-[20px] px-2">
                   {getSubText()}
                 </p>
               )}
             </div>
           </div>
 
-          {/* Enhanced Progress Bar */}
-          <div className="w-96 mx-auto mb-8">
+          {/* Enhanced Progress Bar - Now Responsive with stable width */}
+          <div className="w-80 max-w-[calc(100vw-2rem)] mx-auto mb-6 sm:mb-8">
             <div className="relative">
               {/* Background track */}
               <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
@@ -475,7 +475,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
             </div>
             
             {/* Progress percentage */}
-            <div className="mt-4 flex justify-between items-center">
+            <div className="mt-3 sm:mt-4 flex justify-between items-center">
               <span className="text-xs text-slate-400 font-mono">
                 {Math.round(loadingProgress)}%
               </span>

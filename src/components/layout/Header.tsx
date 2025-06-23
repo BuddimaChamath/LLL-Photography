@@ -223,7 +223,7 @@ export const Header: React.FC = () => {
           
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-4 lg:space-x-6 xl:space-x-10 flex-shrink-0">
-            {['Gallery', 'About', 'Services', 'Freelance', 'Contact'].map((item) => (
+            {['Gallery', 'About', 'Services', 'Testimonials', 'Contact'].map((item) => (
               <a 
                 key={item}
                 href={`#${item.toLowerCase()}`} 
@@ -281,7 +281,7 @@ export const Header: React.FC = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <nav className="md:hidden pt-6 pb-4 space-y-4 border-t border-gray-200/50 dark:border-gray-700/50 mt-4 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-lg shadow-lg">
-            {['Gallery', 'About', 'Services', 'Freelance', 'Contact'].map((item) => (
+            {['Gallery', 'About', 'Services', 'Testimonials', 'Contact'].map((item) => (
               <a 
                 key={item}
                 href={`#${item.toLowerCase()}`} 
