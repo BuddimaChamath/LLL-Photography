@@ -15,37 +15,37 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ imagesPreloaded = fals
   const slideCollections = {
     landscape: [
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493248/lan1_zamlol.jpg", 
+        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130673/lan1_hy4wln.jpg", 
         alt: 'Landscape photography 1',
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493254/lan2_wlyqke.jpg",
+        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130666/lan2_nauavk.jpg",
         alt: 'Landscape photography 2'
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493256/lan3_eytfi3.jpg",
+        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130669/lan3_kg47so.jpg",
         alt: 'Landscape photography 3'
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493251/lan4_fvmbii.jpg",
+        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130674/lan4_gd7mdo.jpg",
         alt: 'Landscape photography 4'
       }
     ],
     portrait: [
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493233/port1_j62u4z.jpg", 
+        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130668/port1_qyz88s.jpg", 
         alt: 'Portrait photography 1',
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493239/port2_kwap94.jpg",
+        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493239/port2_ubioxb.jpg",
         alt: 'Portrait photography 2'
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493252/port3_gkcg0s.jpg",
+        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493252/port3_kbzsgk.jpg",
         alt: 'Portrait photography 3'
       },
       {
-        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493255/port4_lcraob.jpg",
+        src: "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493255/port4_elzii2.jpg",
         alt: 'Portrait photography 4'
       }
     ]

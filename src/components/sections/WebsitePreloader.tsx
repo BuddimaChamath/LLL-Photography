@@ -80,20 +80,91 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [particles, setParticles] = useState<Array<{id: number, x: number, y: number, opacity: number}>>([]);
 
-  // Default image URLs if none provided (includes logo)
-  const defaultImageUrls: string[] = [
-    "/assets/logo.png",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493248/lan1_zamlol.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493254/lan2_wlyqke.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493256/lan3_eytfi3.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493251/lan4_fvmbii.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493233/port1_j62u4z.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493239/port2_kwap94.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493252/port3_gkcg0s.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493255/port4_lcraob.jpg"
+  // Device detection and image categorization
+  const [deviceType, setDeviceType] = useState<'mobile' | 'desktop'>('desktop');
+  const [isLoadingPriority, setIsLoadingPriority] = useState<boolean>(true);
+
+  // Categorized image URLs
+  const landscapeImages: string[] = [
+    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130673/lan1_hy4wln.jpg",
+    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130666/lan2_nauavk.jpg",
+    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130669/lan3_kg47so.jpg",
+    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130674/lan4_gd7mdo.jpg"
   ];
 
-  const imagesToLoad = imageUrls.length > 0 ? imageUrls : defaultImageUrls;
+  const portraitImages: string[] = [
+    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130668/port1_qyz88s.jpg",
+    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493239/port2_ubioxb.jpg",
+    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493252/port3_kbzsgk.jpg",
+    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493255/port4_elzii2.jpg"
+  ];
+
+  const logoImage: string = "/assets/logo.png";
+
+  // Device detection function
+  const detectDevice = (): 'mobile' | 'desktop' => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
+    const isSmallScreen = window.innerWidth <= 768;
+    const isTouchDevice = 'ontouchstart' in window;
+    
+    return (isMobile || isSmallScreen || isTouchDevice) ? 'mobile' : 'desktop';
+  };
+
+  // Smart image loading order based on device
+  const getOptimizedImageOrder = (): string[] => {
+    if (imageUrls.length > 0) {
+      return imageUrls; // Use provided URLs if available
+    }
+
+    const currentDevice = detectDevice();
+    setDeviceType(currentDevice);
+    
+    // Priority loading: Logo + 4 device-appropriate images first
+    let priorityImages: string[];
+    let secondaryImages: string[];
+    
+    if (currentDevice === 'mobile') {
+      priorityImages = [logoImage, ...portraitImages];
+      secondaryImages = landscapeImages;
+    } else {
+      priorityImages = [logoImage, ...landscapeImages];
+      secondaryImages = portraitImages;
+    }
+    
+    return [...priorityImages, ...secondaryImages];
+  };
+
+  const imagesToLoad = getOptimizedImageOrder();
+
+  // CRITICAL: Prevent body scroll when preloader is active
+  useEffect(() => {
+    // Store original overflow style
+    const originalOverflow = document.body.style.overflow;
+    const originalPosition = document.body.style.position;
+    const originalTop = document.body.style.top;
+    const originalWidth = document.body.style.width;
+    
+    // Store current scroll position
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    // Prevent scrolling
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollTop}px`;
+    document.body.style.width = '100%';
+    
+    // Cleanup function to restore scroll
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.position = originalPosition;
+      document.body.style.top = originalTop;
+      document.body.style.width = originalWidth;
+      
+      // Restore scroll position
+      window.scrollTo(0, scrollTop);
+    };
+  }, []);
 
   // Generate floating particles
   useEffect(() => {
@@ -265,7 +336,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
     </div>
   );
 
-  // Main loading process
+  // Enhanced loading process with priority loading
   useEffect(() => {
     const loadWebsite = async (): Promise<void> => {
       try {
@@ -273,12 +344,16 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
         await new Promise(resolve => setTimeout(resolve, 800));
         setLoadingProgress(5);
 
-        // Stage 2: Load images
+        // Stage 2: Smart Priority Loading
         await changeStage('loading');
         const totalImages = imagesToLoad.length;
+        const priorityCount = deviceType === 'mobile' ? 5 : 5; // Logo + 4 images
         let loadedCount = 0;
 
-        for (let i = 0; i < imagesToLoad.length; i++) {
+        // Phase 1: Load priority images (logo + device-appropriate images)
+        setIsLoadingPriority(true);
+        
+        for (let i = 0; i < Math.min(priorityCount, imagesToLoad.length); i++) {
           const url = imagesToLoad[i];
           
           try {
@@ -286,24 +361,55 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
             loadedCount++;
             setLoadedImages(loadedCount);
             
-            // Progress from 5% to 85%
-            const imageProgress = 5 + (loadedCount / totalImages) * 80;
-            setLoadingProgress(imageProgress);
+            // Priority phase: 5% to 60% for first 5 images
+            const priorityProgress = 5 + (loadedCount / priorityCount) * 55;
+            setLoadingProgress(priorityProgress);
             
-            // Small delay between images for smoother UX
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // Shorter delay for priority images
+            await new Promise(resolve => setTimeout(resolve, 150));
             
           } catch (error) {
-            console.warn(`Failed to load image ${i + 1}:`, error);
+            console.warn(`Failed to load priority image ${i + 1}:`, error);
             loadedCount++;
             setLoadedImages(loadedCount);
             
-            const imageProgress = 5 + (loadedCount / totalImages) * 80;
-            setLoadingProgress(imageProgress);
+            const priorityProgress = 5 + (loadedCount / priorityCount) * 55;
+            setLoadingProgress(priorityProgress);
           }
         }
+        
+        // Brief pause to show priority completion
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-        console.log(`Preloaded ${loadedCount}/${totalImages} images successfully`);
+        // Phase 2: Load remaining images (if any)
+        setIsLoadingPriority(false);
+        if (imagesToLoad.length > priorityCount) {
+          
+          for (let i = priorityCount; i < imagesToLoad.length; i++) {
+            const url = imagesToLoad[i];
+            
+            try {
+              await ImageCache.preloadImage(url);
+              loadedCount++;
+              setLoadedImages(loadedCount);
+              
+              // Remaining phase: 60% to 85%
+              const remainingProgress = 60 + ((loadedCount - priorityCount) / (totalImages - priorityCount)) * 25;
+              setLoadingProgress(remainingProgress);
+              
+              // Longer delay for non-priority images
+              await new Promise(resolve => setTimeout(resolve, 250));
+              
+            } catch (error) {
+              console.warn(`Failed to load image ${i + 1}:`, error);
+              loadedCount++;
+              setLoadedImages(loadedCount);
+              
+              const remainingProgress = 60 + ((loadedCount - priorityCount) / (totalImages - priorityCount)) * 25;
+              setLoadingProgress(remainingProgress);
+            }
+          }
+        }
 
         // Stage 3: Finalizing
         await changeStage('finalizing');
@@ -330,7 +436,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
     };
 
     loadWebsite();
-  }, [imagesToLoad, onLoadingComplete]);
+  }, [imagesToLoad, onLoadingComplete, deviceType]);
 
   const getStageText = (): string => {
     switch (currentStage) {
@@ -350,7 +456,11 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
       case 'initializing':
         return 'Adjusting aperture and preparing sensors...';
       case 'loading':
-        return 'Processing gallery images...';
+        if (isLoadingPriority) {
+          return `Loading ${deviceType === 'mobile' ? 'portrait' : 'landscape'} images first...`;
+        } else {
+          return 'Loading remaining gallery images...';
+        }
       case 'finalizing':
         return 'Fine-tuning the perfect shot...';
       default:
@@ -359,7 +469,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center overflow-hidden px-4 sm:px-6">
+    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center overflow-hidden px-4 sm:px-6">
       
       {/* Animated Background Particles */}
       <div className="absolute inset-0 pointer-events-none">
@@ -479,16 +589,20 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
               <span className="text-xs text-slate-400 font-mono">
                 {Math.round(loadingProgress)}%
               </span>
-              <div className="flex space-x-1">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-1 h-1 rounded-full transition-all duration-300 ${
-                      currentStage === 'loading' ? 'bg-slate-400 animate-pulse' : 'bg-slate-300'
-                    }`}
-                    style={{ animationDelay: `${i * 200}ms` }}
-                  />
-                ))}
+              <div className="flex items-center space-x-2">
+                
+                {/* Loading dots */}
+                <div className="flex space-x-1">
+                  {[...Array(3)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-1 h-1 rounded-full transition-all duration-300 ${
+                        currentStage === 'loading' ? 'bg-slate-400 animate-pulse' : 'bg-slate-300'
+                      }`}
+                      style={{ animationDelay: `${i * 200}ms` }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
