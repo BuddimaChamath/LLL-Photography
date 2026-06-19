@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Menu, X, Moon, Sun } from 'lucide-react';
 
@@ -12,87 +12,66 @@ export const Header: React.FC = () => {
   } = useTheme();
 
   // Function to analyze background brightness
-  const analyzeBackgroundBrightness = () => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Find the hero section or background image
-    const heroSection = document.querySelector('[style*="background-image"]') || 
-                       document.querySelector('.hero') || 
-                       document.querySelector('[class*="bg-"]');
-    
-    if (heroSection) {
-      const computedStyle = window.getComputedStyle(heroSection);
-      const backgroundImage = computedStyle.backgroundImage;
-      
-      if (backgroundImage && backgroundImage !== 'none') {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        // Extract URL from background-image CSS property
-        const urlMatch = backgroundImage.match(/url\(['"]?([^'"]+)['"]?\)/);
-        if (urlMatch) {
-          img.onload = () => {
-            try {
-              canvas.width = 100;
-              canvas.height = 100;
-              if (ctx) {
-                ctx.drawImage(img, 0, 0, 100, 100);
-                
-                const imageData = ctx.getImageData(0, 0, 100, 100);
-                const data = imageData.data;
-                
-                let totalBrightness = 0;
-                for (let i = 0; i < data.length; i += 4) {
-                  const r = data[i];
-                  const g = data[i + 1];
-                  const b = data[i + 2];
-                  // Calculate brightness using standard formula
-                  const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
-                  totalBrightness += brightness;
-                }
-                
-                const avgBrightness = totalBrightness / (data.length / 4);
-                setBackgroundBrightness(avgBrightness > 128 ? 'light' : 'dark');
-              } else {
-                setBackgroundBrightness('light');
-              }
-            } catch (error) {
-              console.log('Could not analyze background brightness:', error);
-              setBackgroundBrightness('light');
-            }
-          };
-          
-          img.onerror = () => {
-            setBackgroundBrightness('light');
-          };
-          
-          img.src = urlMatch[1];
-        }
+const analyzeBackgroundBrightness = useCallback(() => {
+    const heroImages = document.querySelectorAll('section img');
+  
+  heroImages.forEach((imgEl) => {
+    const img = imgEl as HTMLImageElement;
+    if (!img.complete || img.naturalWidth === 0) return;
+    if (img.offsetWidth === 0) return; // skip hidden images
+
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const sampleW = 160;
+      const sampleH = 80;
+      canvas.width = sampleW;
+      canvas.height = sampleH;
+
+      const scaleX = img.naturalWidth / img.offsetWidth;
+      const scaleY = img.naturalHeight / img.offsetHeight;
+
+      ctx.drawImage(
+        img,
+        0, 0, sampleW * scaleX, sampleH * scaleY,
+        0, 0, sampleW, sampleH
+      );
+
+      const data = ctx.getImageData(0, 0, sampleW, sampleH).data;
+      let total = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        total += (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
       }
+
+      const avg = total / (data.length / 4);
+      setBackgroundBrightness(avg > 140 ? 'light' : 'dark');
+    } catch (e) {
+      setBackgroundBrightness('dark');
+    }
+  });
+}, []);
+
+  useEffect(() => {
+  const handleScroll = () => {
+    if (window.scrollY > 50) {
+      setIsScrolled(true);
+    } else {
+      setIsScrolled(false);
+      setTimeout(analyzeBackgroundBrightness, 100);
     }
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-        // Only analyze background when at top of page
-        setTimeout(analyzeBackgroundBrightness, 100);
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    // Initial analysis
-    setTimeout(analyzeBackgroundBrightness, 500);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  window.addEventListener('scroll', handleScroll);
+  window.addEventListener('slideChanged', analyzeBackgroundBrightness); 
+  setTimeout(analyzeBackgroundBrightness, 500);
+
+  return () => {
+    window.removeEventListener('scroll', handleScroll);
+    window.removeEventListener('slideChanged', analyzeBackgroundBrightness); 
+  };
+}, [analyzeBackgroundBrightness]);
 
   // Load Google Fonts properly
   useEffect(() => {
@@ -189,14 +168,16 @@ export const Header: React.FC = () => {
                     : ''
                 }`}
                 style={{ 
-                  maxHeight: isScrolled ? '40px' : '64px',
-                  filter: !isScrolled && !isMenuOpen && backgroundBrightness === 'dark' 
-                    ? 'brightness(1.2) drop-shadow(0 2px 4px rgba(0,0,0,0.3))' 
-                    : 'brightness(1.1)'
-                }}
+  maxHeight: isScrolled ? '40px' : '64px',
+  filter: isScrolled
+    ? 'brightness(1.1)'  // gold on white navbar
+    : backgroundBrightness === 'dark'
+      ? 'brightness(0) invert(1)'  // white logo on dark photos
+      : 'brightness(0)'            // black logo on light photos
+}}
               />
             </a>
-            <div className="block relative min-w-0 flex-shrink-1">
+            {/* <div className="block relative min-w-0 flex-shrink-1">
               <h1 
                 className={`font-medium transition-all duration-500 ease-out hover:text-teal-600 dark:hover:text-teal-400 cursor-default whitespace-nowrap overflow-hidden ${
                   isScrolled 
@@ -218,7 +199,7 @@ export const Header: React.FC = () => {
               >
                 THARUN GOUTHAM
               </h1>
-            </div>
+            </div> */}
           </div>
           
           {/* Desktop Navigation */}
@@ -243,7 +224,7 @@ export const Header: React.FC = () => {
                 }}
               >
                 {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-teal-600 to-blue-500 dark:from-teal-400 dark:to-blue-400 transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-teal-600 to-teal-500 dark:from-teal-400 dark:to-teal-400 transition-all duration-300 group-hover:w-full"></span>
               </a>
             ))}
           </nav>

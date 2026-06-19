@@ -176,7 +176,7 @@ export const FreelancerSection: React.FC = () => {
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const autoPlayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const testimonials = [
     {

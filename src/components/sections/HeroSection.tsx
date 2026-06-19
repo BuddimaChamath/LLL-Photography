@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 interface HeroSectionProps {
   imagesPreloaded?: boolean; // Optional prop to indicate images are already preloaded
@@ -132,6 +132,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ imagesPreloaded = fals
     return () => clearInterval(interval);
   }, [currentCollection.length, imagesLoaded]);
 
+  // Notify header when slide changes
+useEffect(() => {
+  window.dispatchEvent(new Event('slideChanged'));
+}, [currentSlide]);
+
   // Content animation
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -227,9 +232,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ imagesPreloaded = fals
             <button
               key={`indicator-${isLandscape ? 'landscape' : 'portrait'}-${index}`}
               onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full border transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-white/50 hover:bg-white/70 hover:border-teal-500/50 hover:scale-110 ${
+              className={`w-3 h-3 rounded-full border transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-white/50 hover:bg-white/70 hover:border-blue-500/50 hover:scale-110 ${
                 index === currentSlide 
-                  ? 'bg-teal-500 border-teal-500 shadow-lg shadow-teal-500/40 scale-110' 
+                  ? 'bg-blue-500 border-blue-500 shadow-lg shadow-blue-500/40 scale-110' 
                   : 'bg-white/40 border-white/30'
               }`}
               aria-label={`Go to slide ${index + 1} of ${currentCollection.length}`}

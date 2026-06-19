@@ -177,7 +177,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
               className="w-full h-full object-cover opacity-30 blur-sm"
             />
           ) : (
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
           )}
         </div>
       )}
@@ -386,7 +386,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
         <div className="flex gap-3">
           <button
             onClick={() => setIsInfoPanelOpen(prev => !prev)}
-            className="text-white hover:text-blue-400 transition-colors p-2 rounded-full hover:bg-white/10"
+            className="text-white hover:text-teal-400 transition-colors p-2 rounded-full hover:bg-white/10"
             aria-label="Toggle information panel"
           >
             <Info size={20} />
@@ -433,7 +433,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
             {!preloadedImages.has(currentImageIndex) && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
                 <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-2"></div>
+                  <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-2"></div>
                   <span className="text-white text-sm">Loading...</span>
                 </div>
               </div>
@@ -472,7 +472,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                 <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center justify-between">
                   Gallery Images
-                  <span className="text-blue-600 dark:text-blue-400">{currentImageIndex + 1}/{gallery.images.length}</span>
+                  <span className="text-teal-600 dark:text-teal-400">{currentImageIndex + 1}/{gallery.images.length}</span>
                 </h4>
                 <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
                   {gallery.images.map((image, idx) => (
@@ -480,7 +480,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
                       key={idx} 
                       onClick={() => setCurrentImageIndex(idx)} 
                       className={`aspect-square overflow-hidden rounded cursor-pointer transition-all duration-200 hover:opacity-90 ${
-                        idx === currentImageIndex ? 'ring-2 ring-blue-500 dark:ring-blue-400 scale-95' : 'hover:scale-95'
+                        idx === currentImageIndex ? 'ring-2 ring-teal-500 dark:ring-teal-400 scale-95' : 'hover:scale-95'
                       }`}
                     >
                       <OptimizedImage
@@ -543,7 +543,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
       {!preloadedImages.has(currentImageIndex) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
           <div className="flex flex-col items-center">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-2"></div>
+            <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-2"></div>
             <span className="text-white text-sm">Loading...</span>
           </div>
         </div>
@@ -691,7 +691,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
                   }} 
                   className={`overflow-hidden rounded cursor-pointer transition-all duration-200 ${
                     idx === currentImageIndex 
-                      ? 'ring-2 ring-blue-500 dark:ring-blue-400 scale-95 shadow-lg' 
+                      ? 'ring-2 ring-teal-500 dark:ring-teal-400 scale-95 shadow-lg' 
                       : 'hover:scale-95 hover:opacity-80 shadow-sm'
                   }`}
                   style={{
@@ -729,7 +729,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ gallery, onClose }) => {
             <div className="flex flex-wrap gap-2">
               <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Categories:</span>
               {gallery.category.map((cat, idx) => (
-                <span key={idx} className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md text-xs">
+                <span key={idx} className="px-2 py-1 bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 rounded-md text-xs">
                   {cat}
                 </span>
               ))}
@@ -935,7 +935,7 @@ useEffect(() => {
               key={key}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 activeCategory === key
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 transform scale-105' 
+                  ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20 transform scale-105' 
                   : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700'
               }`} 
               onClick={() => setActiveCategory(key as Category)}
@@ -949,7 +949,7 @@ useEffect(() => {
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="flex flex-col items-center">
-              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-4"></div>
               <p className="text-gray-600 dark:text-gray-400">Loading gallery...</p>
             </div>
           </div>
