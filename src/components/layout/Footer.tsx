@@ -149,7 +149,7 @@ export const Footer: React.FC = () => {
               className="text-gray-700 dark:text-gray-200 text-sm text-center tracking-wide"
               style={{ fontFamily: "'Lato', sans-serif" }}
             >
-              © {currentYear} Tharun Goutham Photography. All rights reserved.
+              © {currentYear} VIVAAH By Tharun Goutham. All rights reserved.
             </p>
           </div>
         </div>
