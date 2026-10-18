@@ -3,9 +3,9 @@ export const SITE = {
   name: 'Tharun Goutham Photography',
   photographer: 'Tharun Goutham',
   tagline: 'Wedding, portrait & event photographer in Sri Lanka',
-  // Set VITE_SITE_URL (e.g. in Vercel → Settings → Environment Variables) to enable
-  // canonical URLs, absolute share links and sitemap.xml.
-  url: (import.meta.env.VITE_SITE_URL ?? '').replace(/\/+$/, ''),
+  // Public address used for canonical URLs, share links and sitemap.xml. When a custom
+  // domain is added, set VITE_SITE_URL in Vercel (or change this default).
+  url: (import.meta.env.VITE_SITE_URL || 'https://lll-photography.vercel.app').replace(/\/+$/, ''),
   location: 'Battaramulla, Sri Lanka',
   phone: '+94755996155',
   phoneDisplay: '+94 75 599 6155',
