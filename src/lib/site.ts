@@ -5,7 +5,7 @@ export const SITE = {
   tagline: 'Wedding, portrait & event photographer in Sri Lanka',
   // Public address used for canonical URLs, share links and sitemap.xml. When a custom
   // domain is added, set VITE_SITE_URL in Vercel (or change this default).
-  url: (import.meta.env.VITE_SITE_URL || 'https://lll-photography.vercel.app').replace(/\/+$/, ''),
+  url: (import.meta.env.VITE_SITE_URL || 'https://tharun-goutham-photography.vercel.app').replace(/\/+$/, ''),
   location: 'Battaramulla, Sri Lanka',
   phone: '+94755996155',
   phoneDisplay: '+94 75 599 6155',
