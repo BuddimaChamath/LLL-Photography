@@ -1,284 +1,137 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useTheme } from '../../contexts/ThemeContext';
-import { Menu, X, Moon, Sun } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Menu, Moon, Sun, X } from 'lucide-react';
+import { useTheme } from '../../contexts/theme';
+import { NAV_LINKS } from '../../lib/site';
+import { Link } from '../../router';
+import { useRouter } from '../../router/context';
+import { Wordmark } from '../ui/Wordmark';
 
-export const Header: React.FC = () => {
+// `overHero`: the page opens with a full-bleed photo, so the bar starts transparent with
+// white text and turns solid once scrolled.
+export const Header: React.FC<{ overHero: boolean }> = ({ overHero }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [backgroundBrightness, setBackgroundBrightness] = useState('light');
-  const {
-    isDarkMode,
-    toggleTheme
-  } = useTheme();
-
-  // Function to analyze background brightness
-const analyzeBackgroundBrightness = useCallback(() => {
-    const heroImages = document.querySelectorAll('section img');
-  
-  heroImages.forEach((imgEl) => {
-    const img = imgEl as HTMLImageElement;
-    if (!img.complete || img.naturalWidth === 0) return;
-    if (img.offsetWidth === 0) return; // skip hidden images
-
-    try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      const sampleW = 160;
-      const sampleH = 80;
-      canvas.width = sampleW;
-      canvas.height = sampleH;
-
-      const scaleX = img.naturalWidth / img.offsetWidth;
-      const scaleY = img.naturalHeight / img.offsetHeight;
-
-      ctx.drawImage(
-        img,
-        0, 0, sampleW * scaleX, sampleH * scaleY,
-        0, 0, sampleW, sampleH
-      );
-
-      const data = ctx.getImageData(0, 0, sampleW, sampleH).data;
-      let total = 0;
-      for (let i = 0; i < data.length; i += 4) {
-        total += (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
-      }
-
-      const avg = total / (data.length / 4);
-      setBackgroundBrightness(avg > 140 ? 'light' : 'dark');
-    } catch (e) {
-      setBackgroundBrightness('dark');
-    }
-  });
-}, []);
+  const { isDarkMode, toggleTheme } = useTheme();
+  const { location } = useRouter();
 
   useEffect(() => {
-  const handleScroll = () => {
-    if (window.scrollY > 50) {
-      setIsScrolled(true);
-    } else {
-      setIsScrolled(false);
-      setTimeout(analyzeBackgroundBrightness, 100);
-    }
-  };
-
-  window.addEventListener('scroll', handleScroll);
-  window.addEventListener('slideChanged', analyzeBackgroundBrightness); 
-  setTimeout(analyzeBackgroundBrightness, 500);
-
-  return () => {
-    window.removeEventListener('scroll', handleScroll);
-    window.removeEventListener('slideChanged', analyzeBackgroundBrightness); 
-  };
-}, [analyzeBackgroundBrightness]);
-
-  // Load Google Fonts properly
-  useEffect(() => {
-    const linkId = 'header-google-fonts-link';
-    if (!document.getElementById(linkId)) {
-      const linkElement = document.createElement('link');
-      linkElement.id = linkId;
-      linkElement.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Lato:wght@300;400;500&display=swap';
-      linkElement.rel = 'stylesheet';
-      document.head.appendChild(linkElement);
-    }
+    const onScroll = () => setIsScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  // Close the menu whenever the page changes.
+  useEffect(() => setIsMenuOpen(false), [location.pathname]);
 
-  // Dynamic color classes based on scroll state and background brightness
-  const getTextColorClasses = () => {
-    if (isScrolled || isMenuOpen) {
-      // When scrolled or menu open, use theme-based colors
-      return 'text-gray-700 dark:text-gray-200 hover:text-teal-600 dark:hover:text-teal-400';
-    } else {
-      // When at top, invert based on background brightness
-      if (backgroundBrightness === 'light') {
-        return 'text-gray-800 hover:text-gray-900';
-      } else {
-        return 'text-white hover:text-gray-100';
-      }
-    }
-  };
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setIsMenuOpen(false);
+    const close = () => window.innerWidth >= 768 && setIsMenuOpen(false);
+    document.documentElement.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('resize', close);
+    return () => {
+      document.documentElement.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', close);
+    };
+  }, [isMenuOpen]);
 
-  const getButtonColorClasses = () => {
-    if (isScrolled || isMenuOpen) {
-      return 'bg-gray-100/80 dark:bg-gray-800/80 hover:bg-gray-200/80 dark:hover:bg-gray-700/80';
-    } else {
-      if (backgroundBrightness === 'light') {
-        return 'bg-white/20 hover:bg-white/30 backdrop-blur-md';
-      } else {
-        return 'bg-black/20 hover:bg-black/30 backdrop-blur-md';
-      }
-    }
-  };
-
-  const getIconColorClasses = () => {
-    if (isScrolled || isMenuOpen) {
-      return isDarkMode ? 'text-amber-500' : 'text-slate-600';
-    } else {
-      if (backgroundBrightness === 'light') {
-        return 'text-gray-700';
-      } else {
-        return 'text-white';
-      }
-    }
-  };
-
-  const getMenuIconColorClasses = () => {
-    if (isScrolled || isMenuOpen) {
-      return 'text-gray-700 dark:text-gray-200';
-    } else {
-      if (backgroundBrightness === 'light') {
-        return 'text-gray-800';
-      } else {
-        return 'text-white';
-      }
-    }
-  };
+  const transparent = overHero && !isScrolled && !isMenuOpen;
+  const isActive = (href: string) => location.pathname === href || location.pathname.startsWith(`${href}/`);
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-500 ease-out ${
-        isScrolled || isMenuOpen
-          ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg shadow-black/5 py-3' 
-          : 'bg-transparent py-6'
-      }`}
-      style={{ 
-        fontFamily: "'Lato', sans-serif",
-        maxWidth: '100vw',
-        boxSizing: 'border-box'
-      }}
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-full">
-        <div className="flex justify-between items-center w-full">
-          <div className="flex items-center flex-shrink-0 space-x-1 xs:space-x-2 sm:space-x-3 md:space-x-4 lg:space-x-6">
-            <a href="#" className="flex items-center group flex-shrink-0">
-              <img 
-                src="/assets/logo.png" 
-                alt="LLL - Live Laugh Love" 
-                className={`transition-all duration-500 ease-out ${
-                  isScrolled ? 'h-8 sm:h-10' : 'h-12 sm:h-16'
-                } w-auto object-contain filter brightness-110 group-hover:brightness-125 max-w-full ${
-                  !isScrolled && !isMenuOpen && backgroundBrightness === 'dark' 
-                    ? 'drop-shadow-lg' 
-                    : ''
-                }`}
-                style={{ 
-  maxHeight: isScrolled ? '40px' : '64px',
-  filter: isScrolled
-    ? 'brightness(1.1)'  // gold on white navbar
-    : backgroundBrightness === 'dark'
-      ? 'brightness(0) invert(1)'  // white logo on dark photos
-      : 'brightness(0)'            // black logo on light photos
-}}
-              />
-            </a>
-            {/* <div className="block relative min-w-0 flex-shrink-1">
-              <h1 
-                className={`font-medium transition-all duration-500 ease-out hover:text-teal-600 dark:hover:text-teal-400 cursor-default whitespace-nowrap overflow-hidden ${
-                  isScrolled 
-                    ? 'text-xs xs:text-sm sm:text-base md:text-lg' 
-                    : 'text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl'
-                } ${getTextColorClasses()} ${
-                  !isScrolled && !isMenuOpen && backgroundBrightness === 'dark' 
-                    ? 'drop-shadow-lg text-shadow-lg' 
-                    : ''
-                }`}
-                style={{ 
-                  fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: window.innerWidth < 480 ? '0.3px' : window.innerWidth < 768 ? '0.5px' : '1px',
-                  fontWeight: '500',
-                  textShadow: !isScrolled && !isMenuOpen && backgroundBrightness === 'dark' 
-                    ? '0 2px 4px rgba(0,0,0,0.5)' 
-                    : 'none'
-                }}
-              >
-                THARUN GOUTHAM
-              </h1>
-            </div> */}
-          </div>
-          
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-4 lg:space-x-6 xl:space-x-10 flex-shrink-0">
-            {['Gallery', 'About', 'Services', 'Testimonials', 'Contact'].map((item) => (
-              <a 
-                key={item}
-                href={`#${item.toLowerCase()}`} 
-                className={`relative text-sm lg:text-base font-medium tracking-wide transition-all duration-300 ease-out group whitespace-nowrap ${
-                  getTextColorClasses()
-                } ${
-                  !isScrolled && !isMenuOpen && backgroundBrightness === 'dark' 
-                    ? 'drop-shadow-md' 
-                    : ''
-                }`}
-                style={{ 
-                  fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: '0.5px',
-                  textShadow: !isScrolled && !isMenuOpen && backgroundBrightness === 'dark' 
-                    ? '0 1px 3px rgba(0,0,0,0.5)' 
-                    : 'none'
-                }}
-              >
-                {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-teal-600 to-teal-500 dark:from-teal-400 dark:to-teal-400 transition-all duration-300 group-hover:w-full"></span>
-              </a>
-            ))}
+    <>
+      <header
+        className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,color,border-color] duration-500 ${
+          transparent
+            ? 'border-transparent text-white'
+            : isMenuOpen
+              ? 'border-line bg-paper text-ink'
+              : 'border-line bg-paper/95 text-ink backdrop-blur-md'
+        }`}
+      >
+        <div className="container-site flex h-16 items-center justify-between sm:h-20">
+          <Link to="/" aria-label="Tharun Goutham Photography — home">
+            <Wordmark size="sm" />
+          </Link>
+
+          <nav aria-label="Main" className="hidden md:block">
+            <ul className="flex gap-8 lg:gap-11">
+              {NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    to={link.href}
+                    aria-current={isActive(link.href) ? 'page' : undefined}
+                    className={`border-b pb-1 text-[11px] uppercase tracking-[0.24em] transition-opacity ${
+                      isActive(link.href) ? 'border-current opacity-100' : 'border-transparent opacity-75 hover:opacity-100'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </nav>
-          
-          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-            <button 
-              onClick={toggleTheme} 
-              className={`p-2 sm:p-3 rounded-full transition-all duration-300 ease-out hover:scale-110 backdrop-blur-sm flex-shrink-0 ${
-                getButtonColorClasses()
-              }`}
-              aria-label="Toggle theme"
+
+          <div className="-mr-2.5 flex items-center">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2.5 opacity-80 transition-opacity hover:opacity-100"
+              aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {isDarkMode ? 
-                <Sun className={`w-4 h-4 sm:w-5 sm:h-5 ${getIconColorClasses()}`} /> : 
-                <Moon className={`w-4 h-4 sm:w-5 sm:h-5 ${getIconColorClasses()}`} />
-              }
+              {isDarkMode ? <Sun size={17} strokeWidth={1.5} /> : <Moon size={17} strokeWidth={1.5} />}
             </button>
-            
-            {/* Mobile Menu Button */}
-            <button 
-              className={`md:hidden p-2 sm:p-3 rounded-lg transition-all duration-300 ease-out hover:scale-110 backdrop-blur-sm flex-shrink-0 ${
-                getButtonColorClasses()
-              }`}
-              onClick={toggleMenu} 
-              aria-label="Toggle menu"
+            <button
+              type="button"
+              className="p-2.5 md:hidden"
+              onClick={() => setIsMenuOpen((open) => !open)}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
             >
-              {isMenuOpen ? 
-                <X className={`w-5 h-5 sm:w-6 sm:h-6 ${getMenuIconColorClasses()}`} /> : 
-                <Menu className={`w-5 h-5 sm:w-6 sm:h-6 ${getMenuIconColorClasses()}`} />
-              }
+              {isMenuOpen ? <X size={22} strokeWidth={1.25} /> : <Menu size={22} strokeWidth={1.25} />}
             </button>
           </div>
         </div>
-        
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <nav className="md:hidden pt-6 pb-4 space-y-4 border-t border-gray-200/50 dark:border-gray-700/50 mt-4 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-lg shadow-lg">
-            {['Gallery', 'About', 'Services', 'Testimonials', 'Contact'].map((item) => (
-              <a 
-                key={item}
-                href={`#${item.toLowerCase()}`} 
-                className="block text-lg font-medium tracking-wide text-gray-700 dark:text-gray-200 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-300 ease-out hover:translate-x-2 hover:scale-105 py-2 w-full px-4"
-                style={{ 
-                  fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: '0.5px'
-                }}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item}
-              </a>
+      </header>
+
+      {/* Rendered outside <header>: its backdrop-blur would otherwise become the containing
+          block for this fixed panel and collapse it to the header's height. */}
+      {isMenuOpen && (
+        <nav
+          id="mobile-menu"
+          aria-label="Mobile"
+          className="fixed inset-x-0 bottom-0 top-16 z-40 animate-[fadeIn_.25s_ease] overflow-y-auto bg-paper md:hidden"
+        >
+          <ul className="flex min-h-full flex-col items-center justify-center gap-7 py-12">
+            <li>
+              <Link to="/" onClick={() => setIsMenuOpen(false)} className="font-serif text-3xl font-light text-ink">
+                Home
+              </Link>
+            </li>
+            {NAV_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link
+                  onClick={() => setIsMenuOpen(false)}
+                  to={link.href}
+                  aria-current={isActive(link.href) ? 'page' : undefined}
+                  className={`font-serif text-3xl font-light ${isActive(link.href) ? 'italic text-ink' : 'text-ink'}`}
+                >
+                  {link.label}
+                </Link>
+              </li>
             ))}
-          </nav>
-        )}
-      </div>
-    </header>
+            <li className="mt-6">
+              <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="btn-solid">
+                Book a Session
+              </Link>
+            </li>
+          </ul>
+        </nav>
+      )}
+    </>
   );
 };

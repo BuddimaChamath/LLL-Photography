@@ -2,20 +2,74 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VIVAAH By Tharun Goutham</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!--app-head-->
+    <meta name="author" content="Tharun Goutham" />
+    <meta name="theme-color" content="#faf9f7" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Shared social-sharing tags (per-page title/description/image come from app-head) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Tharun Goutham Photography" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Connect early to the image CDN and font hosts -->
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Fonts load without blocking the first paint -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap"
+      />
+      <style>
+        .reveal, .img-fade { opacity: 1 !important; transform: none !important; }
+      </style>
+    </noscript>
+
+    <!-- Apply the saved theme before first paint -->
+    <script>
+      try {
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+      } catch (e) {}
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "name": "Tharun Goutham Photography",
+        "description": "Wedding, engagement, portrait, birthday, convocation and event photography in Sri Lanka.",
+        "image": "https://res.cloudinary.com/dcbjrnh3b/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1751130673/lan1_hy4wln.jpg",
+        "telephone": "+94755996155",
+        "email": "tharungoutham25@gmail.com",
+        "priceRange": "Rs. 25,000 – Rs. 95,000",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Battaramulla",
+          "addressRegion": "Western Province",
+          "addressCountry": "LK"
+        },
+        "areaServed": "Sri Lanka",
+        "founder": { "@type": "Person", "name": "Tharun Goutham", "jobTitle": "Photographer" },
+        "knowsAbout": ["Wedding photography", "Engagement photography", "Portrait photography", "Event photography", "Birthday photography", "Convocation photography"]
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><!--app-html--></div>
     <script type="module" src="/src/index.tsx"></script>
-    <script>
-    if ('scrollRestoration' in history) {
-      history.scrollRestoration = 'manual';
-    }
-    window.scrollTo(0, 0);
-  </script>
-  <div id="root"></div>
-  <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

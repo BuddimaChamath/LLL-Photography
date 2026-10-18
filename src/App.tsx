@@ -1,71 +1,75 @@
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
-import { HeroSection } from './components/sections/HeroSection';
-import { GallerySection } from './components/sections/GallerySection';
-import { AboutSection } from './components/sections/AboutSection';
-import { ServicesSection } from './components/sections/ServicesSection';
-import { FreelancerSection } from './components/sections/FreelancerSection';
-import { ContactSection } from './components/sections/ContactSection';
+import { CtaBand } from './components/sections/CtaBand';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { WebsitePreloader } from './components/sections/WebsitePreloader';
+import { Router } from './router';
+import { useRouter } from './router/context';
+import { matchRoute, type Route } from './routes';
+import { applyMeta, getMeta } from './seo/meta';
+import { HomePage } from './pages/HomePage';
+import { PortfolioPage } from './pages/PortfolioPage';
+import { GalleryPage } from './pages/GalleryPage';
+import { AboutPage } from './pages/AboutPage';
+import { ServicesPage } from './pages/ServicesPage';
+import { ContactPage } from './pages/ContactPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 
-export function App() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [showContent, setShowContent] = useState(false);
+function renderPage(route: Route) {
+  switch (route.name) {
+    case 'home':
+      return <HomePage />;
+    case 'portfolio':
+      return <PortfolioPage />;
+    case 'gallery':
+      return <GalleryPage key={route.gallery.slug} gallery={route.gallery} />;
+    case 'about':
+      return <AboutPage />;
+    case 'services':
+      return <ServicesPage />;
+    case 'contact':
+      return <ContactPage />;
+    case 'notFound':
+      return <NotFoundPage />;
+  }
+}
 
-  // Define the images that need to be preloaded (same as in HeroSection)
-  const imagesToPreload = [
-    // Landscape images
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130673/lan1_hy4wln.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130666/lan2_nauavk.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130669/lan3_kg47so.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130674/lan4_gd7mdo.jpg",
-    // Portrait images
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1751130668/port1_qyz88s.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493239/port2_ubioxb.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493252/port3_kbzsgk.jpg",
-    "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493255/port4_elzii2.jpg"
-  ];
+function Shell() {
+  const { location } = useRouter();
+  const route = matchRoute(location.pathname);
+  // Fade pages in after client-side navigation, but not on the first (prerendered) paint.
+  const firstPath = useRef(location.pathname);
+  const animate = location.pathname !== firstPath.current;
+  if (animate) firstPath.current = '';
 
-  const handleLoadingComplete = () => {
-    setIsLoading(false);
-    // Small delay for smooth transition
-    setTimeout(() => {
-      setShowContent(true);
-    }, 300);
-  };
+  useEffect(() => {
+    applyMeta(getMeta(matchRoute(location.pathname)));
+  }, [location.pathname]);
 
   return (
-    <ThemeProvider>
-      {/* Show preloader while loading */}
-      {isLoading && (
-        <WebsitePreloader 
-          onLoadingComplete={handleLoadingComplete}
-          imageUrls={imagesToPreload}
-        />
-      )}
-      
-      {/* Main content - only show after loading is complete */}
-      <div 
-        className={`min-h-screen flex flex-col transition-all duration-500 dark:bg-gray-900 bg-white ${
-          showContent ? 'opacity-100' : 'opacity-0'
-        }`}
-        style={{ 
-          visibility: showContent ? 'visible' : 'hidden' 
-        }}
+    <>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-paper focus:px-4 focus:py-2 focus:text-sm"
       >
-        <Header />
-        <main className="flex-grow">
-          <HeroSection />
-          <GallerySection />
-          <AboutSection />
-          <ServicesSection />
-          <FreelancerSection />
-          <ContactSection />
-        </main>
-        <Footer />
-      </div>
+        Skip to content
+      </a>
+      <Header overHero={route.name === 'home' || route.name === 'gallery'} />
+      <main id="main" key={location.pathname} className={animate ? 'animate-[fadeIn_.45s_ease]' : undefined}>
+        {renderPage(route)}
+      </main>
+      {route.name !== 'contact' && route.name !== 'notFound' && <CtaBand />}
+      <Footer />
+    </>
+  );
+}
+
+export function App({ url }: { url?: string }) {
+  return (
+    <ThemeProvider>
+      <Router url={url}>
+        <Shell />
+      </Router>
     </ThemeProvider>
   );
 }
