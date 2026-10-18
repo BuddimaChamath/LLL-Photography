@@ -74,7 +74,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
 }) => {
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [currentStage, setCurrentStage] = useState<string>('initializing');
-  const [loadedImages, setLoadedImages] = useState<number>(0);
+  const [, setLoadedImages] = useState<number>(0);
   const [isComplete, setIsComplete] = useState<boolean>(false);
   const [focusActive, setFocusActive] = useState<boolean>(false);
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
@@ -99,7 +99,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
     "https://res.cloudinary.com/dcbjrnh3b/image/upload/v1749493255/port4_elzii2.jpg"
   ];
 
-  const logoImage: string = "/assets/logo.png";
+  const logoImage = "/assets/logo.png";
 
   // Device detection function
   const detectDevice = (): 'mobile' | 'desktop' => {
@@ -494,7 +494,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
             <div className="relative">
               <img 
                 src="/assets/logo.png" 
-                alt="Logo" 
+                alt="Tharun Goutham Photography" 
                 className="mx-auto h-16 sm:h-20 w-auto object-contain transition-all duration-500 hover:scale-105"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
@@ -525,7 +525,7 @@ export const WebsitePreloader: React.FC<WebsitePreloaderProps> = ({
             <div className="relative">
               <img 
                 src="/assets/logo.png" 
-                alt="Logo" 
+                alt="Tharun Goutham Photography" 
                 className="mx-auto h-16 sm:h-20 w-auto object-contain transition-all duration-500 hover:scale-105"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';

@@ -1,249 +1,110 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Camera, Heart, Users } from 'lucide-react';
+import React from 'react';
+import { ArrowRight, Camera, Heart, Users } from 'lucide-react';
+import { PORTRAIT_OF_THARUN } from '../../content/hero';
+import { Link } from '../../router';
+import { Reveal } from '../ui/Reveal';
+import { SmartImage } from '../ui/SmartImage';
 
-export const AboutSection: React.FC = () => {
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [sectionVisible, setSectionVisible] = useState(false);
-  const sectionRef = useRef<HTMLDivElement>(null);
+const features = [
+  { icon: Camera, title: 'Expert Technique', description: 'Using the latest equipment and advanced techniques' },
+  { icon: Heart, title: 'Wedding Specialist', description: 'Capturing magical moments on your special day' },
+  { icon: Users, title: 'Freelance Professional', description: 'Flexible services tailored to your unique needs' },
+];
 
-  const features = [
-    {
-      icon: Camera,
-      title: "Expert Technique",
-      description: "Using the latest equipment and advanced techniques"
-    },
-    {
-      icon: Heart,
-      title: "Wedding Specialist",
-      description: "Capturing magical moments on your special day"
-    },
-    {
-      icon: Users,
-      title: "Freelance Professional",
-      description: "Flexible services tailored to your unique needs"
-    }
-  ];
+const Portrait: React.FC = () => (
+  <div className="aspect-[4/5] overflow-hidden bg-line/50">
+    <SmartImage
+      src={PORTRAIT_OF_THARUN}
+      alt="Tharun Goutham, photographer, with his camera"
+      widths={[480, 720, 960, 1200]}
+      sizes="(min-width: 1024px) 38vw, 100vw"
+      ratio={4 / 5}
+      className="h-full w-full object-cover"
+    />
+  </div>
+);
 
-  // Scroll-triggered animation system
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!sectionRef.current) return;
-
-      const rect = sectionRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      const sectionHeight = rect.height;
-      
-      // Calculate when section enters viewport
-      const sectionTop = rect.top;
-      const sectionBottom = rect.bottom;
-      
-      // Section is visible when it's in viewport
-      const isInViewport = sectionTop < windowHeight && sectionBottom > 0;
-      setSectionVisible(isInViewport);
-      
-      // Calculate scroll progress through the section (0 to 1)
-      if (isInViewport) {
-        const visibleHeight = Math.min(windowHeight, sectionBottom) - Math.max(0, sectionTop);
-        const progress = Math.min(1, Math.max(0, visibleHeight / (windowHeight * 0.8)));
-        setScrollProgress(progress);
-      } else if (sectionTop > windowHeight) {
-        setScrollProgress(0);
-      } else if (sectionBottom < 0) {
-        setScrollProgress(1);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial call
-    
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Calculate scroll-based transformations
-  const imageTransform = {
-    opacity: Math.min(1, scrollProgress * 2),
-    translateX: Math.max(-48, -48 * (1 - scrollProgress)),
-    scale: 0.9 + scrollProgress * 0.1
-  };
-
-  const contentTransform = {
-    opacity: Math.min(1, Math.max(0, (scrollProgress - 0.1) * 1.5)),
-    translateY: Math.max(0, 48 * (1 - scrollProgress))
-  };
-
-  const headingTransform = {
-    opacity: Math.min(1, Math.max(0, (scrollProgress - 0.2) * 2)),
-    translateY: Math.max(0, 32 * (1 - scrollProgress)),
-    lineWidth: Math.min(64, 64 * Math.max(0, scrollProgress - 0.4))
-  };
-
-  const decorativeCircleTransform = {
-    opacity: Math.min(1, Math.max(0, (scrollProgress - 0.3) * 1.5)),
-    scale: Math.min(1, Math.max(0, (scrollProgress - 0.3) * 2))
-  };
-
-  return (
-    <section id="about" className="py-24 bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div 
-          ref={sectionRef}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center"
-        >
-          {/* Image Section */}
-          <div 
-            className="relative transition-none"
-            style={{
-              opacity: imageTransform.opacity,
-              transform: `translateX(${imageTransform.translateX}px) scale(${imageTransform.scale})`
-            }}
-          >
-            <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-500">
-              <img 
-                src="https://res.cloudinary.com/dcbjrnh3b/image/upload/q_auto,f_auto/cover_lbylpo.jpg" 
-                alt="Photographer with camera" 
-                className="w-full h-64 sm:h-80 lg:h-96 object-cover transform hover:scale-105 transition-transform duration-700"
-                loading="lazy"
-              />
-            </div>
-            {/* Decorative circle with scroll-triggered animation */}
-            <div 
-              className="absolute -bottom-4 -right-4 sm:-bottom-8 sm:-right-8 w-32 h-32 sm:w-56 sm:h-56 lg:w-72 lg:h-72 bg-teal-500/8 rounded-full -z-10 transition-none"
-              style={{
-                opacity: decorativeCircleTransform.opacity,
-                transform: `scale(${decorativeCircleTransform.scale})`
-              }}
-            />
-          </div>
-
-          {/* Content Section */}
-          <div className="space-y-6 lg:space-y-8">
-            {/* Heading with modern typography */}
-            <div 
-              className="relative transition-none"
-              style={{
-                opacity: headingTransform.opacity,
-                transform: `translateY(${headingTransform.translateY}px)`
-              }}
-            >
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-gray-900 dark:text-white tracking-wide leading-tight">
-                About Me
-              </h2>
-              <div 
-                className="mt-3 lg:mt-4 h-1 bg-gradient-to-r from-teal-600 to-teal-400 rounded-full transition-none"
-                style={{
-                  width: `${headingTransform.lineWidth}px`
-                }}
-              ></div>
-            </div>
-            
-            {/* Content with improved typography */}
-            <div className="space-y-4 lg:space-y-6">
-              <p 
-                className="text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed font-semibold tracking-wide transition-none"
-                style={{
-                  opacity: Math.min(1, Math.max(0, (scrollProgress - 0.3) * 2)),
-                  transform: `translateY(${Math.max(0, 24 * (1 - Math.max(0, scrollProgress - 0.3)))}px)`
-                }}
-              >
-                Hello! I'm <span className="font-bold text-gray-800 dark:text-gray-200">Tharun Goutham</span>, a professional photographer with over 7
-                years of experience capturing life's most precious moments. My
-                passion for photography began when I received my first camera as a
-                teenager, and it has grown into a lifelong pursuit of visual
-                storytelling.
-              </p>
-              
-              <p 
-                className="text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed font-semibold tracking-wide transition-none"
-                style={{
-                  opacity: Math.min(1, Math.max(0, (scrollProgress - 0.4) * 2)),
-                  transform: `translateY(${Math.max(0, 24 * (1 - Math.max(0, scrollProgress - 0.4)))}px)`
-                }}
-              >
-                I specialize in portrait, wedding, travel, and event photography,
-                bringing a unique perspective and artistic vision to each shoot.
-                My philosophy is simple: every photo should tell a story and evoke
-                emotion.
-              </p>
-            </div>
-
-            {/* Features Grid with enhanced styling */}
-            <div className="pt-6 lg:pt-8">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-8">
-                {features.map((feature, index) => {
-                  const IconComponent = feature.icon;
-                  
-                  // Staggered animation for each feature
-                  const featureDelay = 0.2 + (index * 0.1);
-                  const rawProgress = Math.max(0, scrollProgress - featureDelay);
-                  const featureProgress = Math.min(1, rawProgress * 3);
-                  
-                  return (
-                    <div 
-                      key={index} 
-                      className="group text-center transition-none"
-                      style={{
-                        opacity: Math.max(0.1, featureProgress),
-                        transform: `translateY(${Math.max(0, 32 * (1 - featureProgress))}px) scale(${0.95 + featureProgress * 0.05})`
-                      }}
-                    >
-                      <div 
-                        className="relative mb-6"
-                      >
-                        {/* Icon container with hover effect and rotating appear effect */}
-                        <div 
-                          className="w-16 h-16 mx-auto flex items-center justify-center rounded-2xl bg-white dark:bg-gray-800 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-1"
-                          style={{
-                            transform: `scale(${0.8 + featureProgress * 0.2}) rotateY(${(1 - featureProgress) * 180}deg)`
-                          }}
-                        >
-                          <IconComponent className="w-7 h-7 text-teal-600 dark:text-teal-400 transition-transform duration-300 group-hover:scale-110" />
-                        </div>
-                        {/* Subtle accent circle */}
-                        <div 
-                          className="absolute inset-0 w-16 h-16 mx-auto rounded-2xl bg-teal-500/5 -z-10 group-hover:bg-teal-500/10 transition-colors duration-300"
-                          style={{
-                            opacity: featureProgress * 0.5
-                          }}
-                        />
-                        
-                        {/* Animated ring on hover */}
-                        <div 
-                          className="absolute inset-0 w-16 h-16 mx-auto rounded-2xl border-2 border-teal-500/0 group-hover:border-teal-500/20 transition-all duration-300 group-hover:scale-125"
-                          style={{
-                            borderColor: `rgba(20, 184, 166, ${featureProgress * 0.1})`
-                          }}
-                        />
-                      </div>
-                      
-                      <h3 
-                        className="text-lg font-semibold text-gray-900 dark:text-white mb-3 tracking-wide transition-colors duration-300 group-hover:text-teal-600 dark:group-hover:text-teal-400"
-                        style={{
-                          opacity: Math.min(1, featureProgress * 1.2),
-                          transform: `translateY(${Math.max(0, 16 * (1 - featureProgress))}px)`
-                        }}
-                      >
-                        {feature.title}
-                      </h3>
-                      
-                      <p 
-                        className="text-base text-gray-600 dark:text-gray-400 leading-relaxed font-semibold tracking-wide transition-colors duration-300"
-                        style={{
-                          opacity: Math.min(1, Math.max(0, featureProgress * 1.2 - 0.2)),
-                          transform: `translateY(${Math.max(0, 12 * (1 - featureProgress))}px)`
-                        }}
-                      >
-                        {feature.description}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
+/** Short introduction for the home page. */
+export const AboutIntro: React.FC = () => (
+  <section aria-labelledby="intro-title" className="py-24 sm:py-32">
+    <div className="container-site grid items-center gap-12 lg:grid-cols-12 lg:gap-20">
+      <Reveal className="lg:col-span-5">
+        <Portrait />
+      </Reveal>
+      <div className="lg:col-span-7">
+        <Reveal as="p" className="eyebrow">
+          Hello
+        </Reveal>
+        <Reveal as="h2" id="intro-title" delay={80} className="mt-4 font-serif text-4xl font-light leading-[1.1] sm:text-5xl">
+          I’m Tharun — your friendly photographer
+        </Reveal>
+        <Reveal delay={160} className="mt-8 space-y-5 text-[15px] leading-[1.85] text-muted sm:text-base">
+          <p>
+            With over 7 years of experience, I capture life’s most precious moments — weddings, portraits, travel and
+            events — with an artistic eye and a love of visual storytelling.
+          </p>
+          <p className="font-serif text-2xl font-light italic leading-snug text-ink">
+            “Every photo should tell a story and evoke emotion.”
+          </p>
+        </Reveal>
+        <Reveal delay={220} className="mt-10">
+          <Link to="/about" className="text-link">
+            More about me <ArrowRight size={13} strokeWidth={1.5} />
+          </Link>
+        </Reveal>
       </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
-export default AboutSection;
+/** Full story for the About page. */
+export const AboutStory: React.FC = () => (
+  <section aria-label="My story" className="pb-24 sm:pb-32">
+    <div className="container-site grid items-start gap-12 lg:grid-cols-12 lg:gap-20">
+      <Reveal className="lg:sticky lg:top-28 lg:col-span-5">
+        <Portrait />
+      </Reveal>
+      <div className="lg:col-span-7 lg:pt-6">
+        <Reveal as="h2" className="font-serif text-4xl font-light leading-[1.1] sm:text-5xl">
+          Hello, I’m Tharun
+        </Reveal>
+        <Reveal delay={100} className="mt-8 space-y-5 text-[15px] leading-[1.85] text-muted sm:text-base">
+          <p>
+            I’m <span className="text-ink">Tharun Goutham</span>, a professional photographer with over 7 years of
+            experience capturing life’s most precious moments. My passion for photography began when I received my
+            first camera as a teenager, and it has grown into a lifelong pursuit of visual storytelling.
+          </p>
+          <p>
+            I specialise in portrait, wedding, travel, and event photography, bringing a unique perspective and
+            artistic vision to each shoot.
+          </p>
+        </Reveal>
+
+        <Reveal as="figure" delay={160} className="my-12 border-l border-accent/60 pl-6 sm:pl-8">
+          <blockquote className="font-serif text-3xl font-light italic leading-snug sm:text-4xl">
+            “My philosophy is simple: every photo should tell a story and evoke emotion.”
+          </blockquote>
+        </Reveal>
+
+        <ul className="grid gap-8 border-t border-line pt-10 sm:grid-cols-3 sm:gap-6">
+          {features.map(({ icon: Icon, title, description }, i) => (
+            <Reveal as="li" key={title} delay={i * 90}>
+              <Icon className="h-5 w-5 text-accent" strokeWidth={1.25} aria-hidden="true" />
+              <h3 className="mt-4 font-serif text-xl">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>
+            </Reveal>
+          ))}
+        </ul>
+
+        <Reveal className="mt-12 flex flex-wrap gap-3">
+          <Link to="/portfolio" className="btn-solid">
+            See my work
+          </Link>
+          <Link to="/services" className="btn-outline">
+            Packages
+          </Link>
+        </Reveal>
+      </div>
+    </div>
+  </section>
+);
